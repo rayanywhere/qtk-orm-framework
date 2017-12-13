@@ -5,3 +5,4 @@ module.exports = {
     Object: require('./src/object'),
     Relation: require('./src/relation')
 }
+
