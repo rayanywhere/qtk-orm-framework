@@ -1,5 +1,5 @@
 const ObjectClass = require('./src/object');
-const RelationClass = require('./src/object');
+const RelationClass = require('./src/relation');
 
 module.exports = {
     config: (opts) => {

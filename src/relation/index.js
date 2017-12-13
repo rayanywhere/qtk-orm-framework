@@ -17,7 +17,7 @@ module.exports = class {
     async put(relation) {
         this._schema.validate(relation);
         const storage = this._router.find(relation.subject);
-        await storage.put(object);
+        await storage.put(relation);
     }
 
     async has(subject, object) {

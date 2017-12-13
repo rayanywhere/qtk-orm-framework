@@ -7,6 +7,11 @@ module.exports = class {
         this._router = Router.create(name);
     }
 
+    async has(id) {
+        const storage = this._router.find(id);
+        return storage.has(id);
+    }
+
     async get(id) {
         const storage = this._router.find(id);
         const object = await storage.get(id);
@@ -22,6 +27,6 @@ module.exports = class {
 
     async del(id) {
         const storage = this._router.find(id);
-        await storage.del(id)
+        await storage.del(id);
     }
 }

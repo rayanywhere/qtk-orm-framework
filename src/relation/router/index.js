@@ -15,7 +15,7 @@ module.exports = class {
     }
 
     constructor(name) {
-        this._router = require(`${config.path}/object/${name.replace(/\./g, '/')}/router.js`);
+        this._router = require(`${config.path}/relation/${name.replace(/\./g, '/')}/router.js`);
     }
 
     find(id) {

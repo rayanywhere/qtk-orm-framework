@@ -1,5 +1,5 @@
-module.exports = {
+module.exports = object({
     subject: string(/^.{32}$/),
     object: string(/^.{32}$/),
-    boughtTime: integer()
-};
+    createdTime: integer()
+});
