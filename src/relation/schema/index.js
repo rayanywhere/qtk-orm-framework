@@ -17,17 +17,16 @@ module.exports = class {
     constructor(name) {
         let doc = fs.readFileSync(`${config.path}/relation/${name.replace(/\./g, '/')}/schema.js`, {encoding:'utf8'});
         doc = doc.replace(/:\s*(string|boolean|integer)\((.*?)\)/g, ':validator.$1($2)');
-        this._schema = eval(`(${doc})`);
+        this._schema = eval(doc);
     }
 
     validate(relation) {
-        for(let [key,val] of Object.entries(relation)) {
-            const validator = this._schema[key];
-            if (validator === undefined) {
-                throw new Error(`unexpected key(${key})`);
+        for(let [key,validator] of Object.entries(this._schema)) {
+            if (relation[key] === undefined) {
+                throw new Error(`missing key(${key}) in relation instance`);
             }
             if (typeof validator === 'function') {
-                validator(val);
+                validator(relation[key]);
             }
             else {
                 throw new Error(`bad validator for key ${key}`);

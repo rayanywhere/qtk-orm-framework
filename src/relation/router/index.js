@@ -15,13 +15,11 @@ module.exports = class {
     }
 
     constructor(name) {
-        const {shards, hash} = require(`${config.path}/object/${name.replace(/\./g, '/')}/router.js`);
-        this._shards = shards;
-        this._hash = hash;
+        this._router = require(`${config.path}/object/${name.replace(/\./g, '/')}/router.js`);
     }
 
     find(id) {
-        const connParam = this._hash(id);
+        const connParam = this._router.hash(id);
         return Storage.create(connParam);
     }
 }

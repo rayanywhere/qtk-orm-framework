@@ -28,6 +28,7 @@ module.exports = class {
     }
 
     async set(object) {
+				const id = object.id;
         const data = Object.assign({}, object);
         delete data.id;
 
