@@ -99,9 +99,9 @@ module.exports = class {
 		});
     }
 
-    async list(subject, offset = undefined, number = undefined) {
-        let preparedSql = `SELECT * FROM ?? WHERE \`subject\`=?`;
-		let params = [this._connParam.table, subject];
+    async list(subject, property, order, offset = undefined, number = undefined) {
+        let preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY ?? ${order === 'asc' ? 'ASC' : 'DESC'}`;
+		let params = [this._connParam.table, subject, property];
 		if ((typeof number === 'number') && (typeof offset === 'number')) {
 			preparedSql += " LIMIT ?,?";
 			params.push(offset);

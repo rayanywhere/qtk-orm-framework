@@ -40,10 +40,10 @@ module.exports = class {
         return await storage.count(subject);
     }
 
-    async list(subject, offset = undefined, number = undefined) {
+    async list(subject, property, order, offset = undefined, number = undefined) {
         const storage = this._router.find(subject);
-        const relations = await storage.list(subject, offset, number);
+        const relations = await storage.list(subject, property, order, offset, number);
         relations.forEach(relation => this._schema.validate(relation));
         return relations;
     }
-}
+};
