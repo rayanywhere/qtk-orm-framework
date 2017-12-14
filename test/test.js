@@ -23,7 +23,7 @@ describe('ORM', function() {
             });
             assert(await ORM.Object('user').has(USER_ID), `user should exist by now`);
             await ORM.Object('user').get(USER_ID);
-            //await ORM.Object('user').del(USER_ID);
+            await ORM.Object('user').del(USER_ID);
         });
     });
     describe('Relation', function() {
