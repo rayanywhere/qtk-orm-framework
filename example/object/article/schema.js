@@ -1,5 +1,5 @@
 module.exports = object({
-    id: skey(32),
+    id: ikey(),
     title: string(),
     content: string()
 });

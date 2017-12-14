@@ -13,7 +13,11 @@ module.exports = {
         };
     },
     ikey: function() {
-        return this.integer();
+        return function(val) {
+            if (!Number.isInteger(val)) {
+                throw new Error(`expect an integer value, got: ${typeof val}(${val})`);
+            }
+        }
     },
     string: function() {
         return function(val) {

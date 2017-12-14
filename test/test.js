@@ -3,8 +3,8 @@ const ORM = require('../');
 ORM.config({path: `${__dirname}/../example`});
 
 const USER_ID = '00000000000000000000000000000001';
-const ARTICLE_ID = '10000000000000000000000000000001';
-const ARTICLE_ID2 = '10000000000000000000000000000002';
+const ARTICLE_ID = 1;
+const ARTICLE_ID2 = 2;
 
 describe('ORM', function() {
     describe('Object', function() {
@@ -23,7 +23,7 @@ describe('ORM', function() {
             });
             assert(await ORM.Object('user').has(USER_ID), `user should exist by now`);
             await ORM.Object('user').get(USER_ID);
-            await ORM.Object('user').del(USER_ID);
+            //await ORM.Object('user').del(USER_ID);
         });
     });
     describe('Relation', function() {
@@ -32,7 +32,7 @@ describe('ORM', function() {
             await ORM.Relation('user.article').put({
                 subject: USER_ID,
                 object: ARTICLE_ID,
-                createdTime: parseInt(new Date().getTime() / 1000)
+                createdTime: parseInt(new Date().getTime() / 1000),
             });
             await ORM.Relation('user.article').put({
                 subject: USER_ID,
@@ -44,7 +44,7 @@ describe('ORM', function() {
             assert(await ORM.Relation('user.article').count(USER_ID) === 2, 'count of user.article should equal to 2');
 
             assert(await (async () => {
-                let articleList = await ORM.Relation('user.article').list(USER_ID, 'createdTime', 'asc');
+                let articleList = await ORM.Relation('user.article').list(USER_ID, 'object', 'asc');
                 assert(articleList.length === 2, 'length of user.article list should equal to 2');
                 return articleList[0].createdTime < articleList[1].createdTime;
             })() === true, 'list should order by createdTime ascend');

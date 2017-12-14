@@ -7,7 +7,7 @@ module.exports = {
             user: "root",
             password: "",
             database: "db_test",
-            table: "r_user_article"
+            table: "r_user_article_json"
         }
     ],
     hash: function (id) {

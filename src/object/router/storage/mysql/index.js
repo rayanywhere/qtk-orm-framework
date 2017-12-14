@@ -1,6 +1,18 @@
 const Mysql = require('mysql');
 const MysqlPool = require('../../../../lib/mysql_pool');
 
+function toRow(object) {
+	let id = object.id;
+	delete object.id;
+	return {id, object: JSON.stringify(object)};
+}
+
+function toObject(row) {
+	let object = JSON.parse(row.object);
+	object.id = row.id;
+	return object;
+}
+
 module.exports = class {
     constructor(connParam) {
         this._connParam = connParam;
@@ -22,7 +34,7 @@ module.exports = class {
 	}
 
     async get(id) {
-        const sql = Mysql.format('SELECT data FROM ?? WHERE ??=?', [this._connParam.table, 'id', id]);
+        const sql = Mysql.format('SELECT * FROM ?? WHERE ??=?', [this._connParam.table, 'id', id]);
 		const mysql = await MysqlPool.fetch(this._connParam);
 		return await new Promise((resolve, reject) => {
 			mysql.query(sql, (error, rows, fields) => {
@@ -35,19 +47,20 @@ module.exports = class {
 					resolve(null);
 					return;
                 }
-                let object = JSON.parse(rows[0].data);
-                object.id = id;
-				resolve(object);
+				resolve(toObject(rows[0]));
 			});
 		});
     }
 
     async set(object) {
-		const id = object.id;
-        const data = Object.assign({}, object);
-        delete data.id;
-
-        const sql = Mysql.format('REPLACE INTO ?? SET ??=?, ??=?', [this._connParam.table, 'id', id, 'data', JSON.stringify(data)]);
+		const row = toRow(object);
+        const sqlArr = [];
+        const dataArr = [this._connParam.table];
+        for (const [key, val] of Object.entries(row)) {
+            sqlArr.push('??=?');
+            dataArr.push(key, val);
+        }
+		const sql = Mysql.format('REPLACE INTO ?? SET ' + sqlArr.join(','), dataArr);
 		const mysql = await MysqlPool.fetch(this._connParam);
 		return await new Promise((resolve, reject) => {
 			mysql.query(sql, (error, rows, fields) => {
