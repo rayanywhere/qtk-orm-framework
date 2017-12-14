@@ -1,5 +1,5 @@
 module.exports = object({
-    subject: string(/^.{32}$/),
-    object: string(/^.{32}$/),
+    subject: skey(32),
+    object: skey(32),
     createdTime: integer()
 });

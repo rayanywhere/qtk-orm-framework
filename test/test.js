@@ -17,8 +17,6 @@ describe('ORM', function() {
             await ORM.Object('user').set({
                 id:USER_ID,
                 name:"ray",
-                gender: 'male',
-                type: 1,
                 age: 12,
                 isVip:true,
                 hobbies: ['driving', '敏感词', '不可描述']

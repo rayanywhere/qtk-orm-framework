@@ -1,7 +1,7 @@
 const fs = require('fs');
 const cache = new Map();
 const config = require('../../../config');
-const {integer, string, boolean, object, array} = require('../../lib/validator');
+const {skey, ikey, integer, string, boolean, object, array} = require('../../lib/validator');
 
 module.exports = class {
     static create(name) {
