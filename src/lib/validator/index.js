@@ -1,14 +1,31 @@
+const isObject = require('isobject');
+
 module.exports = {
     string: function(validator = undefined) {
-        if ((validator !== undefined) && !(validator instanceof RegExp)) {
-            throw new Error('expect pattern passed to a string validator to be an instance of class RegExp');
+        // no validator or regexp
+        if(validator === undefined || validator instanceof RegExp) {
+            // find. just let it pass.
         }
+        // enum
+        else if(Array.isArray(validator)) {
+            if(!validator.every(i => typeof i === 'string')) {
+                throw new Error(`expect all items in enum to be string`);
+            }
+        }
+        // oops...
+        else {
+            throw new Error(`expect validator to be an instanceof RegExp as pattern, or an array<string> as enum`);
+        }
+
         return function(val) {
             if (typeof val !== 'string') {
                 throw new Error('expect a string value');
             }
-            if (validator !== undefined && val.match(validator) === null) {
+            if (validator instanceof RegExp && !validator.test(val)) {
                 throw new Error(`value ${val} mismatch pattern ${validator}`);
+            }
+            if (Array.isArray(validator) && !validator.includes(val)) {
+                throw new Error(`value ${val} is not in enum[${validator}]`);
             }
         }
     },
@@ -20,27 +37,45 @@ module.exports = {
         }
     },
     integer: function(validator = undefined) {
-        if (validator !== undefined) {
-            if ((typeof validator !== 'object') || !Number.isInteger(validator.min) || !Number.isInteger(validator.max)) {
-                throw new Error(`expect range to be an object with both min & max fields`);
+        // no validator
+        if (validator === undefined) {
+            // fine. just let it pass.
+        }
+        // range
+        else if (isObject(validator)) {
+            if(!Number.isInteger(validator.min) || !Number.isInteger(validator.max)) {
+                throw new Error(`expect range with both min & max fields`);
             }
+        }
+        // enum
+        else if (Array.isArray(validator)) {
+            if(!validator.every(i => Number.isInteger(i))) {
+                throw new Error(`expect all items in enum to be integer`);
+            }
+        }
+        // oops...
+        else {
+            throw new Error(`expect validator to be an object as range, or an array<integer> as enum`);
         }
 
         return function(val) {
             if (!Number.isInteger(val)) {
-                throw new Error('expect an integer value');
+                throw new Error(`expect an integer value, got: ${typeof val}(${val})`);
             }
-            if ((validator !== undefined) && (val < validator.min || val > validator.max)) {
+            if (isObject(validator) && (val < validator.min || val > validator.max)) {
                 throw new Error(`value ${val} of out range of [${validator.min}-${validator.max}]`);
+            }
+            if(Array.isArray(validator) && !validator.includes(val)) {
+                throw new Error(`value ${val} is not in enum[${validator}]`);
             }
         }
     },
     object: function(validator) {
-        if (typeof validator !== 'object') {
+        if (!isObject(validator)) {
             throw new Error(`expect validator to be an object`);
         }
         return function(val) {
-            if (typeof val !== 'object' || val === null) {
+            if (!isObject(val)) {
                 throw new Error('expect an object value');
             }
             let validatorKeys = Object.keys(validator);
