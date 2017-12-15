@@ -1,6 +1,5 @@
 const assert = require('assert');
-const ORM = require('../');
-ORM.config({path: `${__dirname}/../example`});
+const ORM = require('../')(`${__dirname}/../example/schema`, `${__dirname}/../example/router`);
 
 const USER_ID = '00000000000000000000000000000001';
 const ARTICLE_ID = 1;

@@ -1,21 +1,15 @@
 const fs = require('fs');
 const cache = new Map();
-const config = require('../../../config');
 const Storage = require('./storage');
 
 module.exports = class {
-    static create(name) {
-        if (cache.has(name)) {
-            return cache.get(name);
-        }
-
-        const router = new this(name);
-        cache.set(name, router);
-        return router;
+    static create(name, routerPath) {
+        const fileName = `${routerPath}/object/${name.replace(/\./g, '/')}.js`
+        return new this(fileName);
     }
 
-    constructor(name) {
-        this._router = require(`${config.path}/object/${name.replace(/\./g, '/')}/router.js`);
+    constructor(fileName) {
+        this._router = require(fileName);
     }
 
     find(id) {

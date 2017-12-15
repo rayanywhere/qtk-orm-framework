@@ -1,21 +1,20 @@
 const fs = require('fs');
 const cache = new Map();
-const config = require('../../../config');
 const {skey, ikey, integer, string, boolean, object, array} = require('../../lib/validator');
 
 module.exports = class {
-    static create(name) {
-        if (cache.has(name)) {
-            return cache.get(name);
+    static create(name, schemaPath) {
+        const fileName = `${schemaPath}/object/${name.replace(/\./g, '/')}.js`;
+        if (cache.has(fileName)) {
+            return cache.get(fileName);
         }
-
-        const schema = new this(name);
-        cache.set(name, schema);
+        const schema = new this(fileName);
+        cache.set(fileName, schema);
         return schema;
     }
 
-    constructor(name) {
-        let doc = fs.readFileSync(`${config.path}/object/${name.replace(/\./g, '/')}/schema.js`, {encoding:'utf8'});
+    constructor(fileName) {
+        const doc = fs.readFileSync(fileName, {encoding:'utf8'});
         this._validate = eval(doc);
     }
 
