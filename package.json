@@ -25,6 +25,7 @@
   "homepage": "https://github.com/rayanywhere/qtk-orm-framework#readme",
   "dependencies": {
     "isobject": "^3.0.1",
+    "klaw-sync": "^3.0.2",
     "mocha": "^4.0.1",
     "mysql": "^2.15.0"
   }
