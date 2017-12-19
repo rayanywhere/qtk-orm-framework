@@ -3,5 +3,9 @@ module.exports = object({
     name: string(),
     age: integer(),
     isVip: boolean(),
-    hobbies: array(string())
+    hobbies: array(string()),
+    location: object({
+        longitude: string(),
+        latitude: string()
+    })
 });

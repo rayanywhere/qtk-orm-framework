@@ -26,7 +26,9 @@
   "dependencies": {
     "isobject": "^3.0.1",
     "klaw-sync": "^3.0.2",
+    "log4js": "^1.1.1",
     "mocha": "^4.0.1",
-    "mysql": "^2.15.0"
+    "mysql": "^2.15.0",
+    "opts": "^1.2.6"
   }
 }

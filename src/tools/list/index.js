@@ -1,17 +1,16 @@
 const walk = require('klaw-sync');
 const fs = require('fs');
 
-module.exports = (sourcePath, type) => {
+module.exports = (schemaDir, routerDir, type) => {
     let moduleList = [];
-    let schemaPath = `${sourcePath}/schema/${type}/`;
-    walk(schemaPath, {
+    walk(schemaDir, {
         nodir: true,
         filter: item => item.path.endsWith('.js')
     }).forEach((item) => {
-        if (!fs.existsSync(`${item.path.replace('schema', 'router')}`)) {
+        if (!fs.existsSync(`${item.path.replace(schemaDir, routerDir)}`)) {
             throw new Error(`router file of ${item.path} is lost`);
         }
-        const module = item.path.replace(schemaPath, '').replace(/\//g, '.').replace('.js', '');
+        const module = item.path.replace(`${schemaDir}/`, '').replace(/\//g, '.').replace('.js', '');
         moduleList.push(module);
     });
 

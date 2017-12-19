@@ -16,4 +16,8 @@ module.exports = class {
         const connParam = this._router.hash(id);
         return Storage.create(connParam);
     }
+
+    getShardsConfig() {
+        return this._router.shards;
+    }
 }
