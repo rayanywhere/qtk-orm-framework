@@ -102,7 +102,7 @@ describe('ORM', function() {
                     createdTime: parseInt(new Date().getTime() / 1000)
                 });
             }
-            migration
+            // migration
             await exec(`cd ${__dirname}/../bin && ./migrate relation user.article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
             // validate
             let countUser1 = await ORM.Relation('user.article').count('00000000000000000000000000000001');
