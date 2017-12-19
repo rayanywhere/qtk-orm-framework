@@ -81,7 +81,7 @@ describe('ORM', function() {
                 await ORMOld.Object('article').set({id, title: `title ${id}`, content: `content ${id}`});
             }
             // migration
-            await exec(`cd ${__dirname}/../bin && ./migrate object article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+            await exec(`${__dirname}/../bin/migrate/index.js object article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
             // validate
             for(let id = 1; id <= articleCount; id++) {
                 assert((await ORM.Object('article').get(id)) != null, `expect article ${id} to be non-null in new db, got null.`);
@@ -103,7 +103,7 @@ describe('ORM', function() {
                 });
             }
             // migration
-            await exec(`cd ${__dirname}/../bin && ./migrate relation user.article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+            await exec(`${__dirname}/../bin/migrate/index.js relation user.article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
             // validate
             let countUser1 = await ORM.Relation('user.article').count('00000000000000000000000000000001');
             let countUser2 = await ORM.Relation('user.article').count('00000000000000000000000000000002');

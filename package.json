@@ -10,6 +10,9 @@
   "scripts": {
     "test": "mocha"
   },
+  "bin": {
+    "orm_migrate": "./bin/migrate/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rayanywhere/qtk-orm-framework.git"

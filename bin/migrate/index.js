@@ -3,7 +3,7 @@ const opts = require('opts');
 const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
-const {count: countShard, dumpObject, dumpRelation} = require('./_migrate/shard_reader');
+const {count: countShard, dumpObject, dumpRelation} = require('./shard_reader');
 
 opts.parse([
     {
@@ -82,7 +82,7 @@ function dump(mod, shard, limit) {
 }
 
 function save(mod, modelName, model) {
-    const ORMNew = require('..')(schemaPath, newRouterPath);
+    const ORMNew = require('../..')(schemaPath, newRouterPath);
     if (mod === 'object') return ORMNew.Object(modelName).set(model);
     else if (mod === 'relation') return ORMNew.Relation(modelName).put(model);
     else throw new Error(`unknown mod: ${mod}`);
