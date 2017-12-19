@@ -14,7 +14,7 @@ module.exports = class {
     }
 
     constructor(fileName) {
-        const doc = fs.readFileSync(fileName, {encoding:'utf8'});
+        const doc = fs.readFileSync(fileName, {encoding: 'utf8'});
         this._validate = eval(doc);
     }
 

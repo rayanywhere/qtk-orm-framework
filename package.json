@@ -26,6 +26,7 @@
   "dependencies": {
     "isobject": "^3.0.1",
     "mocha": "^4.0.1",
-    "mysql": "^2.15.0"
+    "mysql": "^2.15.0",
+    "opts": "^1.2.6"
   }
 }

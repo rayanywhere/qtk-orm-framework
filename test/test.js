@@ -1,9 +1,20 @@
 const assert = require('assert');
-const ORM = require('../')(`${__dirname}/../example/schema`, `${__dirname}/../example/router`);
+const Mysql = require('mysql');
+const mysqlPool = require('../src/lib/mysql_pool');
+const childProcess = require('child_process');
+
+const schemaDir = `${__dirname}/../example/schema`;
+const routerDir = `${__dirname}/../example/router`;
+const oldRouterDir = `${__dirname}/../example/old_router`;
+
+const ORM = require('../')(schemaDir, routerDir);
+const ORMOld = require('../')(schemaDir, oldRouterDir);
+
 
 const USER_ID = '00000000000000000000000000000001';
 const ARTICLE_ID = 1;
 const ARTICLE_ID2 = 2;
+const articleCount = 1086;
 
 describe('ORM', function() {
     describe('Object', function() {
@@ -60,4 +71,73 @@ describe('ORM', function() {
             await ORM.Relation('user.article').removeAll(USER_ID);
         });
     });
+    describe('Migrate', function(){
+        it('migrate object - should return without error', async function() {
+            this.timeout(10000);
+            // prepare data
+            await truncate('object', 'article', oldRouterDir);
+            await truncate('object', 'article', routerDir);
+            for(let id = 1; id <= articleCount; id++) {
+                await ORMOld.Object('article').set({id, title: `title ${id}`, content: `content ${id}`});
+            }
+            // migration
+            await exec(`cd ${__dirname}/../bin && ./migrate object article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+            // validate
+            for(let id = 1; id <= articleCount; id++) {
+                assert((await ORM.Object('article').get(id)) != null, `expect article ${id} to be non-null in new db, got null.`);
+            }
+            // clear
+            await truncate('object', 'article', oldRouterDir);
+            await truncate('object', 'article', routerDir);
+        });
+        it('migrate relation - should return without error', async function() {
+            this.timeout(10000);
+            // prepare data
+            await truncate('relation', 'user.article', oldRouterDir);
+            await truncate('relation', 'user.article', routerDir);
+            for(let aid = 1; aid <= articleCount; aid++) {
+                await ORMOld.Relation('user.article').put({
+                    subject: `0000000000000000000000000000000${aid % 3 + 1}`,
+                    object: aid,
+                    createdTime: parseInt(new Date().getTime() / 1000)
+                });
+            }
+            migration
+            await exec(`cd ${__dirname}/../bin && ./migrate relation user.article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+            // validate
+            let countUser1 = await ORM.Relation('user.article').count('00000000000000000000000000000001');
+            let countUser2 = await ORM.Relation('user.article').count('00000000000000000000000000000002');
+            let countUser3 = await ORM.Relation('user.article').count('00000000000000000000000000000003');
+            assert(countUser1 + countUser2 + countUser3 === articleCount, `expect count of all relations to be ${articleCount}.`);
+            // clear
+            await truncate('relation', 'user.article', oldRouterDir);
+            await truncate('relation', 'user.article', routerDir);
+        });
+    });
 });
+
+async function truncate(mod, modelName, routerPath) {
+    const oldRouter = require([routerPath, mod, ...modelName.split('.')].join('/'));
+    for(let shard of oldRouter.shards) {
+        let mysql = await mysqlPool.fetch(shard);
+        const sql = Mysql.format('truncate table ??.??', [shard.database, shard.table]);
+        await new Promise((resolve, reject) => {
+            mysql.query(sql, (error, rows, fields) => {
+                mysql.release();
+                error ? reject(error) : resolve();
+            });
+        });
+    }
+}
+
+async function exec(cmd) {
+    return new Promise((resolve, reject) => {
+        childProcess.exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                reject(error, stderr);
+                return;
+            }
+            resolve(stdout, stderr);
+        });
+    });
+}
