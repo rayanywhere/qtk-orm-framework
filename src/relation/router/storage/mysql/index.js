@@ -118,11 +118,11 @@ module.exports = class {
     async list(subject, property, order, offset = undefined, number = undefined) {
         let preparedSql;
         if(property === 'subject' || property === 'object') {
-            preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY ?? ${order === 'asc' ? 'ASC' : 'DESC'}`;
+            preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY ?? ${order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'}`;
         }
         else {
             property = `$.${property}`;
-            preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY relation->>? ${order === 'asc' ? 'ASC' : 'DESC'}`;
+            preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY relation->>? ${order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'}`;
         }
         let params = [this._connParam.table, subject, property];
         if ((typeof number === 'number') && (typeof offset === 'number')) {
