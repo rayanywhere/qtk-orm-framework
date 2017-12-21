@@ -4,11 +4,13 @@ const mysqlPool = require('../src/lib/mysql_pool');
 const childProcess = require('child_process');
 
 const schemaDir = `${__dirname}/../example/schema`;
+const oldSchemaDir = `${__dirname}/../example/old_schema`;
 const routerDir = `${__dirname}/../example/router`;
 const oldRouterDir = `${__dirname}/../example/old_router`;
 
 const ORM = require('../')(schemaDir, routerDir);
-const ORMOld = require('../')(schemaDir, oldRouterDir);
+const ORMOldRouter = require('../')(schemaDir, oldRouterDir);
+const ORMOldSchema = require('../')(oldSchemaDir, routerDir);
 
 
 const USER_ID = '00000000000000000000000000000001';
@@ -36,6 +38,7 @@ describe('ORM', function() {
             await ORM.Object('user').del(USER_ID);
         });
     });
+
     describe('Relation', function() {
         it('should return without error', async function() {
             await ORM.Relation('user.article').removeAll(USER_ID);
@@ -71,63 +74,99 @@ describe('ORM', function() {
             await ORM.Relation('user.article').removeAll(USER_ID);
         });
     });
+
     describe('Migrate', function(){
         it('migrate object - should return without error', async function() {
             this.timeout(10000);
             // prepare data
-            await truncate('object', 'article', oldRouterDir);
-            await truncate('object', 'article', routerDir);
+            await clear('object', 'article', oldRouterDir, schemaDir);
+            await clear('object', 'article', routerDir, schemaDir);
             for(let id = 1; id <= articleCount; id++) {
-                await ORMOld.Object('article').set({id, title: `title ${id}`, content: `content ${id}`});
+                await ORMOldRouter.Object('article').set({id, title: `title ${id}`, content: `content ${id}`});
             }
             // migration
-            await exec(`${__dirname}/../bin/object_list_id.js article -r ${oldRouterDir} | ${__dirname}/../bin/migrate.js object article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+            await migrate('object', 'article', schemaDir, routerDir, oldRouterDir);
             // validate
             for(let id = 1; id <= articleCount; id++) {
                 assert((await ORM.Object('article').get(id)) != null, `expect article ${id} to be non-null in new db, got null.`);
             }
             // clear
-            await truncate('object', 'article', oldRouterDir);
-            await truncate('object', 'article', routerDir);
+            await clear('object', 'article', oldRouterDir, schemaDir);
+            await clear('object', 'article', routerDir, schemaDir);
         });
         it('migrate relation - should return without error', async function() {
             this.timeout(10000);
             // prepare data
-            await truncate('relation', 'user.article', oldRouterDir);
-            await truncate('relation', 'user.article', routerDir);
+            await clear('relation', 'user.article', oldRouterDir, schemaDir);
+            await clear('relation', 'user.article', routerDir, schemaDir);
             for(let aid = 1; aid <= articleCount; aid++) {
-                await ORMOld.Relation('user.article').put({
+                await ORMOldRouter.Relation('user.article').put({
                     subject: `0000000000000000000000000000000${aid % 3 + 1}`,
                     object: aid,
                     createdTime: parseInt(new Date().getTime() / 1000)
                 });
             }
             // migration
-            await exec(`${__dirname}/../bin/relation_list_subject.js user.article -r ${oldRouterDir} | ${__dirname}/../bin/migrate/index.js relation user.article -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+            await migrate('relation', 'user.article', schemaDir, routerDir, oldRouterDir);
             // validate
             let countUser1 = await ORM.Relation('user.article').count('00000000000000000000000000000001');
             let countUser2 = await ORM.Relation('user.article').count('00000000000000000000000000000002');
             let countUser3 = await ORM.Relation('user.article').count('00000000000000000000000000000003');
-            assert(countUser1 + countUser2 + countUser3 === articleCount, `expect count of all relations to be ${articleCount}.`);
+            let actualCount = countUser1 + countUser2 + countUser3;
+            assert(actualCount === articleCount, `expect actualCount to be ${articleCount}, got: ${actualCount}`);
             // clear
-            await truncate('relation', 'user.article', oldRouterDir);
-            await truncate('relation', 'user.article', routerDir);
+            await clear('relation', 'user.article', oldRouterDir, schemaDir);
+            await clear('relation', 'user.article', routerDir, schemaDir);
+        });
+    });
+
+    describe('Reshape', function() {
+        it('reshape object - should return without error', async function() {
+            this.timeout(10000);
+            // prepare data
+            await clear('object', 'article', routerDir, oldSchemaDir);
+            for(let id = 1; id <= articleCount; id++) {
+                await ORMOldSchema.Object('article').set({
+                    id, title: `title ${id}`, 
+                    content: `content ${id}`, 
+                    createdTime: parseInt(new Date().getTime()/1000)
+                });
+            }
+            // migration
+            await reshape('object', 'article', `${__dirname}/reshape/article.js`, schemaDir, oldSchemaDir, routerDir);
+            // claar
+            await clear('object', 'article', routerDir, schemaDir);
+        });
+        it('reshape relation - should return without error', async function() {
+            this.timeout(10000);
+            // prepare data
+            await clear('relation', 'user.article', routerDir, oldSchemaDir);
+            for(let aid = 1; aid <= articleCount; aid++) {
+                await ORMOldSchema.Relation('user.article').put({
+                    subject: `0000000000000000000000000000000${aid % 3 + 1}`,
+                    object: aid,
+                    createdTime: parseInt(new Date().getTime() / 1000),
+                    modifiedTime: parseInt(new Date().getTime() / 1000)
+                });
+            }
+            // migration
+            await reshape('relation', 'user.article', `${__dirname}/reshape/user.article.js`, schemaDir, oldSchemaDir, routerDir);
+            // claar
+            //await clear('relation', 'user.article', routerDir, schemaDir);
         });
     });
 });
 
-async function truncate(mod, modelName, routerPath) {
-    const oldRouter = require([routerPath, mod, ...modelName.split('.')].join('/'));
-    for(let shard of oldRouter.shards) {
-        let mysql = await mysqlPool.fetch(shard);
-        const sql = Mysql.format('truncate table ??.??', [shard.database, shard.table]);
-        await new Promise((resolve, reject) => {
-            mysql.query(sql, (error, rows, fields) => {
-                mysql.release();
-                error ? reject(error) : resolve();
-            });
-        });
-    }
+async function clear(mod, modelName, routerDir, schemaDir) {
+    await exec(`${__dirname}/../bin/list.js ${mod} ${modelName} -r ${routerDir} | ${__dirname}/../bin/clear.js ${mod} ${modelName} -r ${routerDir} -s ${schemaDir}`);
+}
+
+async function migrate(mod, modelName, schemaDir, routerDir, oldRouterDir) {
+    await exec(`${__dirname}/../bin/list.js ${mod} ${modelName} -r ${oldRouterDir} | ${__dirname}/../bin/migrate.js ${mod} ${modelName} -s ${schemaDir} -r ${routerDir} -o ${oldRouterDir}`);
+}
+
+async function reshape(mod, modelName, reshapeScriptFile, schemaDir, oldSchemaDir, routerDir) {
+    await exec(`${__dirname}/../bin/list.js ${mod} ${modelName} -r ${routerDir} | ${__dirname}/../bin/reshape.js ${mod} ${modelName} ${reshapeScriptFile} -s ${schemaDir} -o ${oldSchemaDir} -r ${routerDir}`);
 }
 
 async function exec(cmd) {

@@ -7,19 +7,12 @@ const LineReader = require('promise-readline');
 
 opts.parse([
     {
-        short       : 'o',
-        long        : 'old-router-dir',
-        description : 'old router path',
-        value       : true,
-        required    : true
-    }, 
-    {
         short       : 'r',
         long        : 'router-dir',
         description : 'router path',
         value       : true,
         required    : true
-    }, 
+    },
     {
         short       : 's',
         long        : 'schema-dir',
@@ -42,23 +35,20 @@ opts.parse([
     }
 ], true);
 
-const schemaPath    = opts.get('schema-dir');
-const oldRouterPath = path.resolve(opts.get('old-router-dir'));
-const newRouterPath = path.resolve(opts.get('router-dir'));
+const routerPath = path.resolve(opts.get('router-dir'));
+const schemaPath = opts.get('schema-dir');
 const mod = opts.arg('module(object|relation)');
 const modelName = opts.arg('model_name');
 const idFile = opts.arg('id_file');
 const lr = LineReader(idFile ? fs.createReadStream(idFile) : process.stdin);
-assert(fs.lstatSync(oldRouterPath).isDirectory(), `oldRouterPath(${oldRouterPath}) is expected to be a directory`);
-assert(fs.lstatSync(newRouterPath).isDirectory(), `routerPath(${newRouterPath}) is expected to be a directory`);
-const ORMOld = require('..')(schemaPath, oldRouterPath);
-const ORMNew = require('..')(schemaPath, newRouterPath);
+assert(fs.lstatSync(routerPath).isDirectory(), `routerPath(${routerPath}) is expected to be a directory`);
+const ORM = require('..')(schemaPath, routerPath);
 
 (async () => {
     let summary = {total: 0, success: 0, failed: 0};
     for(let id = await lr.readLine(); id != null; id = await lr.readLine()) {
         summary.total += 1;
-        await migrate(mod, modelName, id).then(() => {
+        await clear(mod, modelName, id).then(() => {
             console.log(`[DONE] ${mod}-${modelName}-${id}`)
             summary.success += 1;
         })
@@ -75,14 +65,12 @@ const ORMNew = require('..')(schemaPath, newRouterPath);
     process.exit(-1);
 });;
 
-async function migrate(mod, modelName, id) {
+async function clear(mod, modelName, id) {
     if (mod === 'object') {
-        let object = await ORMOld.Object(modelName).get(id);
-        await ORMNew.Object(modelName).set(object);
+        await ORM.Object(modelName).del(id);
     }
     else if (mod === 'relation') {
-        let relations = await ORMOld.Relation(modelName).list(id, 'subject', 'asc');
-        await Promise.all(relations.map(relation => ORMNew.Relation(modelName).put(relation)));
+        await ORM.Relation(modelName).removeAll(id);
     }
     else {
         throw new Error(`unknown mod: ${mod}`);
