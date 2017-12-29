@@ -4,7 +4,7 @@ const {skey, ikey, integer, string, boolean, object, array} = require('../../lib
 
 module.exports = class {
     static create(name, schemaPath) {
-        const fileName = `${schemaPath}relation/${name.replace(/\./g, '/')}.js`;
+        const fileName = `${schemaPath}/relation/${name.replace(/\./g, '/')}.js`;
         if (cache.has(fileName)) {
             return cache.get(fileName);
         }

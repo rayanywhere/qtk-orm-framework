@@ -10,6 +10,11 @@
   "scripts": {
     "test": "mocha"
   },
+  "bin": {
+    "orm_build_mysql": "node ./bin/build_mysql",
+    "orm_add_relation_index": "node /bin/add_relation_index",
+    "orm_list_module": "node ./bin/list_module"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rayanywhere/qtk-orm-framework.git"
