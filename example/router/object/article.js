@@ -8,7 +8,7 @@ module.exports = {
                 user: "root",
                 password: "",
                 database: "db_test",
-                table: "o_article"
+                table: "o_article_new"
             }
         ],
         hash: function (id) {
