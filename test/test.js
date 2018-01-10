@@ -8,21 +8,25 @@ const ARTICLE_ID2 = 2;
 describe('ORM', function() {
     describe('Object', function() {
         it('should return without error', async function() {
-            await ORM.Object('user').del(USER_ID);
-            assert(await ORM.Object('user').has(USER_ID) === false, `user should not exist by now`);
-            await ORM.Object('user').get(USER_ID).then(() => {
-                throw new Error(`get() should not be successful by now`);
-            }).catch(err => {});
-            await ORM.Object('user').set({
-                id:USER_ID,
-                name:"ray",
-                age: 12,
-                isVip:true,
-                hobbies: ['driving', '敏感词', '不可描述']
-            });
-            assert(await ORM.Object('user').has(USER_ID), `user should exist by now`);
+            // await ORM.Object('user').del(USER_ID);
+            // assert(await ORM.Object('user').has(USER_ID) === false, `user should not exist by now`);
+            // await ORM.Object('user').get(USER_ID).then(() => {
+            //     throw new Error(`get() should not be successful by now`);
+            // }).catch(err => {});
+            // await ORM.Object('user').set({
+            //     id:USER_ID,
+            //     name:"ray",
+            //     age: 12,
+            //     isVip:true,
+            //     hobbies: ['driving', '敏感词', '不可描述'],
+            //     location: {
+            //         longitude: '110.118',
+            //         latitude: '120.233'
+            //     }
+            // });
+            // assert(await ORM.Object('user').has(USER_ID), `user should exist by now`);
             await ORM.Object('user').get(USER_ID);
-            await ORM.Object('user').del(USER_ID);
+            // await ORM.Object('user').del(USER_ID);
         });
     });
     describe('Relation', function() {

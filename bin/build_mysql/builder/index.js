@@ -6,10 +6,10 @@ module.exports = class {
     constructor(schemaDir, routerDir, type,  moduleName) {
         this._type = type;
         if (type == 'object') {
-            this._shards = require(`${routerDir}/object/${moduleName.replace(/\./g, '/')}.js`).shards;
+            this._shards = require(`${routerDir}/object/${moduleName.replace(/\./g, '/')}.js`).persistence.shards;
             this._schema = eval(fs.readFileSync(`${schemaDir}/object/${moduleName.replace(/\./g, '/')}.js`, {encoding:'utf8'}));
         } else {
-            this._shards = require(`${routerDir}/relation/${moduleName.replace(/\./g, '/')}.js`).shards;
+            this._shards = require(`${routerDir}/relation/${moduleName.replace(/\./g, '/')}.js`).persistence.shards;
             this._schema = eval(fs.readFileSync(`${schemaDir}/relation/${moduleName.replace(/\./g, '/')}.js`, {encoding:'utf8'}));
         }
     }
@@ -48,14 +48,18 @@ module.exports = class {
         (
             ?? ${resolveSqlType(this._schema.properties.subject)},
             ?? ${resolveSqlType(this._schema.properties.object)},
+            relation JSON,
         `;
         for (let key of Object.keys(this._schema.properties)) {
             if (key != 'object' && key != 'subject') {
-                params.push(key);
-                sql += `    ?? ${resolveSqlType(this._schema.properties[key])},`
+                if (needAddIndex(this._schema.properties[key])) {
+                    sql += `    ?? ${resolveSqlType(this._schema.properties[key])} GENERATED ALWAYS AS (relation->"$.${key}"),`;
+                    sql += `    INDEX ${key}(${key}),`;
+                    params.push(key);
+                }
             }
         }
-        sql += 
+        sql +=
         `
             PRIMARY KEY(??, ??)
         )`;
@@ -79,4 +83,8 @@ function resolveSqlType(node) {
             return `VARCHAR(${maxLen})`;
         }
     } 
+}
+
+function needAddIndex(node) {
+    return (node.type == 'ikey' || node.type == 'skey' );
 }

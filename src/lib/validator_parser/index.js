@@ -1,4 +1,5 @@
 const isObject = require('isobject');
+const assert = require('assert');
 
 module.exports = {
     skey: function(minLen, maxLen = undefined) {
@@ -16,25 +17,32 @@ module.exports = {
             type: "ikey"
         };
     },
-    string: function() {
+    string: function(defaultVal=undefined) {
+        if (defaultVal !== undefined)
+            assert(typeof defaultVal == 'string', 'expect a string default value');
         return {
-            type: "string"
+            type: "string",
+            defaultVal: defaultVal
         }
     },
-    boolean: function() {
+    boolean: function(defaultVal=undefined) {
+        if (defaultVal !== undefined)
+            assert(typeof defaultVal == 'boolean', 'expect a boolean default value');
         return {
-            type: "boolean"
+            type: "boolean",
+            defaultVal: defaultVal
         }
     },
-    integer: function() {
+    integer: function(defaultVal=undefined) {
+        if (defaultVal !== undefined)
+            assert(Number.isInteger(defaultVal), 'expect an integer default value');
         return {
-            type: "integer"
+            type: "integer",
+            defaultVal: defaultVal
         }
     },
     object: function(validator) {
-        if (!isObject(validator)) {
-            throw new Error(`expect validator to be an object`);
-        }
+        assert(isObject(validator), 'expect validator to be an object');
         let obj = {
             type: "object",
             properties: {}

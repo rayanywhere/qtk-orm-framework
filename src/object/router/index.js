@@ -12,12 +12,17 @@ module.exports = class {
         this._router = require(fileName);
     }
 
-    find(id) {
-        const connParam = this._router.hash(id);
+    findPersistence(id) {
+        const connParam = this._router.persistence.hash(id);
         return Storage.create(connParam);
     }
 
-    getShardsConfig() {
-        return this._router.shards;
+    findCache(id) {
+        const connParam = this._router.cache.hash(id);
+        return Storage.create(connParam);
+    }
+
+    hasCache() {
+        return this._router.cache !== undefined;
     }
 }

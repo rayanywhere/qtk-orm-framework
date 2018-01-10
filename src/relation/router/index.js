@@ -4,7 +4,7 @@ const Storage = require('./storage');
 
 module.exports = class {
     static create(name, routerPath) {
-        const fileName = `${routerPath}/relation/${name.replace(/\./g, '/')}.js`
+        const fileName = `${routerPath}/relation/${name.replace(/\./g, '/')}.js`;
         return new this(fileName);
     }
 
