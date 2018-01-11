@@ -11,10 +11,10 @@
     "test": "mocha"
   },
   "bin": {
-    "orm_build_mysql": "node ./bin/build_mysql",
-    "orm_add_relation_index": "node /bin/add_relation_index",
-    "orm_list_module": "node ./bin/list_module",
-    "orm_migrate": "./bin/migrate/index.js"
+    "orm_build_mysql": "bin/build_mysql/index.js",
+    "orm_add_relation_index": "bin/add_relation_index/index.js",
+    "orm_list_module": "bin/list_module/index.js",
+    "orm_migrate": "bin/migrate.js"
   },
   "repository": {
     "type": "git",
@@ -36,11 +36,7 @@
     "memcached": "^2.2.2",
     "mocha": "^4.0.1",
     "mysql": "^2.15.0",
-<<<<<<< HEAD
-    "opts": "^1.2.6"
-=======
     "opts": "^1.2.6",
     "promise-readline": "^1.0.7"
->>>>>>> 90671979d50e2b6981299d52d949726633a9b1da
   }
 }
