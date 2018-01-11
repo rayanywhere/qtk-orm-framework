@@ -1,9 +1,10 @@
 const isObject = require('isobject');
+const assert = require('assert');
 
 module.exports = {
     skey: function(minLen, maxLen = undefined) {
         maxLen = maxLen ? maxLen : minLen;
-        return function(val) {
+        return function(val, node=undefined, key=undefined) {
             if (typeof val !== 'string') {
                 throw new Error('expect a string value');
             }
@@ -13,30 +14,48 @@ module.exports = {
         };
     },
     ikey: function() {
-        return function(val) {
+        return function(val, node=undefined, key=undefined) {
             if (!Number.isInteger(val)) {
                 throw new Error(`expect an integer value, got: ${typeof val}(${val})`);
             }
         }
     },
-    string: function() {
-        return function(val) {
-            if (typeof val !== 'string') {
+    string: function(defaultVal=undefined) {
+        return function(val, node=undefined, key=undefined) {
+            if (typeof val === 'undefined') {
+                if (typeof defaultVal !== 'undefined') {
+                    assert(typeof defaultVal === 'string', 'expect a string default value');
+                    node[key] = defaultVal;
+                }
+            }
+            if (typeof node[key] !== 'string') {
                 throw new Error('expect a string value');
             }
         }
     },
-    boolean: function() {
-        return function(val) {
-            if (typeof val !== 'boolean') {
+    boolean: function(defaultVal=undefined) {
+        return function(val, node=undefined, key=undefined) {
+            if (typeof val === 'undefined') {
+                if (typeof defaultVal !== 'undefined') {
+                    assert(typeof defaultVal === 'boolean', 'expect a boolean default value');
+                    node[key] = defaultVal;
+                }
+            }
+            if (typeof node[key] !== 'boolean') {
                 throw new Error('expect a boolean value');
             }
         }
     },
-    integer: function() {
-        return function(val) {
-            if (!Number.isInteger(val)) {
-                throw new Error(`expect an integer value, got: ${typeof val}(${val})`);
+    integer: function(defaultVal=undefined) {
+        return function(val, node=undefined, key=undefined) {
+            if (typeof val === 'undefined') {
+                if (typeof defaultVal !== 'undefined') {
+                    assert(Number.isInteger(defaultVal), 'expect an integer default value');
+                    node[key] = defaultVal;
+                }
+            }
+            if (!Number.isInteger(node[key])) {
+                throw new Error(`expect an integer value, got: ${typeof node[key]}(${node[key]})`);
             }
         }
     },
@@ -44,23 +63,21 @@ module.exports = {
         if (!isObject(validator)) {
             throw new Error(`expect validator to be an object`);
         }
-        return function(val) {
+        return function(val, node=undefined, key=undefined) {
             if (!isObject(val)) {
-                throw new Error('expect an object value');
+                node[key] = {};
+                val = node[key]
             }
             let validatorKeys = Object.keys(validator);
             let valKeys = Object.keys(val);
             if (!valKeys.every(i => validatorKeys.includes(i))) {
                 throw new Error(`extra key in object instance.`);
-            } 
-            if (!validatorKeys.every(i => valKeys.includes(i))) {
-                throw new Error(`missing key in object instance`);
             }
             for(let [key, subValidator] of Object.entries(validator)) {
                 if (typeof subValidator !== 'function') {
                     throw new Error(`bad validator for key ${key}`);
                 }
-                subValidator(val[key]);
+                subValidator(val[key], val, key);
             }
         };
     }, 
@@ -68,11 +85,13 @@ module.exports = {
         if (typeof validator !== 'function') {
             throw new Error(`bad validator for array`);
         }
-        return function(val) {
-            if (!Array.isArray(val)) {
+        return function(val, node, key) {
+            if (!Array.isArray(node[key])) {
                 throw new Error('expect an array value');
             }
-            val.forEach(item => validator(item));
+            for (let idx in node[key]) {
+                validator(node[key][idx], node[key], idx);
+            }
         }
     }
 };
