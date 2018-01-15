@@ -3,8 +3,8 @@ const Router = require('./router');
 
 module.exports = class {
     constructor(name, schemaPath, routerPath) {
-        this._schema = Schema.create(name, schemaPath);
-        this._router = Router.create(name, routerPath);
+        this._schema = Schema.get(name, schemaPath);
+        this._router = new Router(name, routerPath);
     }
 
     async fetch(subject, object) {

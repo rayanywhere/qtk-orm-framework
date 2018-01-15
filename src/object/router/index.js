@@ -1,28 +1,51 @@
 const fs = require('fs');
-const cache = new Map();
-const Storage = require('./storage');
+const Router = require('../../lib/router/object');
+
+const deprecatedCheckMap = new Map();
 
 module.exports = class {
-    static create(name, routerPath) {
-        const fileName = `${routerPath}/object/${name.replace(/\./g, '/')}.js`
-        return new this(fileName);
+
+    constructor(name, routerPath) {
+        this._currentRouterPath = `${routerPath}/relation/${name.replace(/\./g, '/')}.js`;
+        this._deprecatedRouterPath = `${routerPath}/relation/${name.replace(/\./g, '/')}.deprecated.js`;
+        if (!deprecatedCheckMap.has(this._deprecatedRouterPath)) {
+            deprecatedCheckMap.set(this._deprecatedRouterPath, fs.existsSync(this._deprecatedRouterPath));
+        }
+        this._hasDeprecated = deprecatedCheckMap.get(this._deprecatedRouterPath);
+        this._cRouter = new Router(this._currentRouterPath);
+        if (this._hasDeprecated)
+            this._dRouter = new Router(this._deprecatedRouterPath);
     }
 
-    constructor(fileName) {
-        this._router = require(fileName);
+    async has(id) {
+        if (await this._cRouter.has(id))
+            return true;
+        if (this._hasDeprecated && await this._dRouter.has(id)) {
+            await this._cRouter.set(await this._dRouter.get(id));
+            return true;
+        }
+        return false;
     }
 
-    findPersistence(id) {
-        const connParam = this._router.persistence.hash(id);
-        return Storage.create(connParam);
+    async get(id) {
+        let object = undefined;
+        object = await this._cRouter.get(id);
+        if (object === undefined && this._hasDeprecated) {
+            object = await this._dRouter.get(id);
+            if (object !== undefined) {
+                await this._cRouter.set(object);
+            }
+        }
+        return object;
     }
 
-    findCache(id) {
-        const connParam = this._router.cache.hash(id);
-        return Storage.create(connParam);
+    async set(object) {
+        await this._cRouter.set(object);
     }
 
-    hasCache() {
-        return this._router.cache !== undefined;
+    async del(id) {
+        await this._cRouter.del(id);
+        if (this._hasDeprecated)
+            await this._dRouter.del(id);
     }
 }
