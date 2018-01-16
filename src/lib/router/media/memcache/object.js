@@ -11,14 +11,14 @@ module.exports = class {
 
     async has(id)  {
         const memcache = new Memcache(`${this._connParam.host}:${this._connParam.port}`, this._config);
-        const key = `${this._connParam.prefix}${object.id}`;
+        const key = `${this._connParam.prefix}${id}`;
         return await new Promise((resolve, reject) => {
             memcache.get(key, function (err, object) {
+                memcache.end();
                 if (err) {
                     reject(err);
                     return;
                 }
-                memcache.end();
                 return object !== undefined;
             })
         })
@@ -29,11 +29,11 @@ module.exports = class {
         const key = `${this._connParam.prefix}${object.id}`;
         return await new Promise((resolve, reject) => {
             memcache.set(key, object, 0, function (err) {
+                memcache.end();
                 if (err) {
                     reject(err);
                     return;
                 }
-                memcache.end();
                 resolve();
             })
         });
@@ -44,11 +44,11 @@ module.exports = class {
         const key = `${this._connParam.prefix}${id}`;
         return await new Promise((resolve, reject) => {
             memcache.get(key, function (err, object) {
+                memcache.end();
                 if (err) {
                     reject(err);
                     return;
                 }
-                memcache.end();
                 resolve(object);
             })
         })
@@ -59,11 +59,11 @@ module.exports = class {
         const key = `${this._connParam.prefix}${id}`;
         return await new Promise((resolve, reject) => {
             memcache.del(key, function (err, object) {
+                memcache.end();
                 if (err) {
                     reject(err);
                     return;
                 }
-                memcache.end();
                 resolve();
             })
         })

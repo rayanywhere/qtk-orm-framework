@@ -1,20 +1,20 @@
 const Mysql = require('mysql');
 const MysqlPool = require('./lib/pool');
 
-function toRow(relation) {
-    let subject = relation.subject;
-    let object = relation.object;
-    delete relation.subject;
-    delete relation.object;
-    return {subject, object, relation: JSON.stringify(relation)};
+function extractStructure(abstractRelation) {
+    let subject = abstractRelation.subject;
+    let object = abstractRelation.object;
+    delete abstractRelation.subject;
+    delete abstractRelation.object;
+    return {subject, object, abstractRelation}
 }
 
-function toRelation(row) {
+function rowToRealRelation(row) {
+    let subject = row.subject;
     let relation = JSON.parse(row.relation);
-    relation.subject = row.subject;
-    relation.object = row.object;
-    return relation;
+    return {subject, relation};
 }
+
 
 module.exports = class {
     constructor(connParam) {
@@ -22,9 +22,8 @@ module.exports = class {
     }
 
     async fetch(subject, object) {
-        const sql = Mysql.format('SELECT * FROM ?? WHERE ??=? AND ??=?', [this._connParam.table, 'subject', subject, 'object', object]);
+        const sql = Mysql.format('SELECT * FROM ?? WHERE ??=?', [this._connParam.table, 'subject', subject]);
         const mysql = await MysqlPool.fetch(this._connParam);
-
         return await new Promise((resolve, reject) => {
             mysql.query(sql, (error, rows, fields) => {
                 mysql.release();
@@ -33,25 +32,54 @@ module.exports = class {
                     return;
                 }
                 if (rows.length < 1) {
-                    resolve(null);
+                    resolve(undefined);
                     return;
                 }
-                resolve(toRelation(rows[0]));
-            });
+                let {subject, relation} = rowToRealRelation(rows[0]);
+                if (!relation[object]) {
+                    resolve(undefined);
+                    return;
+                } else {
+                    relation[object].subject = subject;
+                    relation[object].object = object;
+                    resolve(relation);
+                    return;
+                }
+            })
         });
     }
 
-    async put(relation) {
-        const row = toRow(relation);
-        const sqlArr = [];
-        const dataArr = [this._connParam.table];
-        for (const [key, val] of Object.entries(row)) {
-            sqlArr.push('??=?');
-            dataArr.push(key, val);
-        }
-        const sql = Mysql.format('REPLACE INTO ?? SET ' + sqlArr.join(','), dataArr);
+    async _fetchAll(subject) {
+        const sql = Mysql.format('SELECT * FROM ?? WHERE ??=?', [this._connParam.table, 'subject', subject]);
         const mysql = await MysqlPool.fetch(this._connParam);
+        return await new Promise((resolve, reject) => {
+            mysql.query(sql, (error, rows, fields) => {
+                mysql.release();
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                if (rows.length < 1) {
+                    resolve(undefined);
+                    return;
+                }
+                resolve(rowToRealRelation(rows[0]).relation);
+                return;
+            })
+        });
+    }
 
+    async put(abstractRelation) {
+        let {subject, object, relation} = extractStructure(abstractRelation);
+        let relations = await this._fetchAll(subject);
+        if (relations) {
+            relations[object] = relation;
+        } else {
+            relations = {};
+            relations[object] = relation;
+        }
+        const sql = Mysql.format('REPLACE INTO ?? SET ??=? , ??=?', [this._connParam.table, 'subject', subject, 'relation', JSON.stringify(data)]);
+        const mysql = await MysqlPool.fetch(this._connParam);
         return await new Promise((resolve, reject) => {
             mysql.query(sql, (error, rows, fields) => {
                 mysql.release();
@@ -60,34 +88,36 @@ module.exports = class {
                     return;
                 }
                 resolve();
-            });
+            })
         });
     }
 
     async has(subject, object) {
-        return (await this.fetch(subject, object) !== null);
+        return (await this.fetch(subject, object) !== undefined);
     }
 
     async remove(subject, object) {
-        const sql = Mysql.format('DELETE FROM ?? WHERE ??=? AND ??=?', [this._connParam.table, 'subject', subject, 'object', object]);
-        const mysql = await MysqlPool.fetch(this._connParam);
-
-        return await new Promise((resolve, reject) => {
-            mysql.query(sql, (error, rows, fields) => {
-                mysql.release();
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve();
+        let relations = await this._fetchAll(subject);
+        if (relations && relations[object]) {
+            delete relations[object];
+            const sql = Mysql.format('REPLACE INTO ?? SET ??=? , ??=?', [this._connParam.table, 'subject', subject, 'relation', JSON.stringify(data)]);
+            const mysql = await MysqlPool.fetch(this._connParam);
+            return await new Promise((resolve, reject) => {
+                mysql.query(sql, (error, rows, fields) => {
+                    mysql.release();
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve();
+                });
             });
-        });
+        }
     }
 
     async removeAll(subject) {
         const sql = Mysql.format('DELETE FROM ?? WHERE ??=?', [this._connParam.table, 'subject', subject]);
         const mysql = await MysqlPool.fetch(this._connParam);
-
         return await new Promise((resolve, reject) => {
             mysql.query(sql, (error, rows, fields) => {
                 mysql.release();
@@ -101,55 +131,35 @@ module.exports = class {
     }
 
     async count(subject) {
-        const sql = Mysql.format('SELECT count(*) as num FROM ?? WHERE ??=?', [this._connParam.table, 'subject', subject]);
-        const mysql = await MysqlPool.fetch(this._connParam);
-        return await new Promise((resolve, reject) => {
-            mysql.query(sql, (error, rows, fields) => {
-                mysql.release();
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve(parseInt(rows[0].num));
-            });
-        });
+        let relations = await this._fetchAll(subject);
+        return relations ? [...Object.keys(relations)].length : 0;
     }
 
     async list(subject, property, order, offset = undefined, number = undefined) {
-        let preparedSql;
-        if(property === 'subject' || property === 'object') {
-            preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY ?? ${order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'}`;
+        let relations = await this._fetchAll(subject);
+        for (let object in relations) {
+            relations[object].subject = subject;
+            relations[object].object = object;
         }
-        else {
-            property = `$.${property}`;
-            preparedSql = `SELECT * FROM ?? WHERE \`subject\`=? ORDER BY relation->>? ${order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'}`;
+        let compare = function (a, b) {
+            let params = property.split('.');
+            for (let param of params) {
+                a = a[param];
+                b = b[param];
+            }
+            if (order == 'DESC') {
+                return a > b ? -1 : 1;
+            } else {
+                return a > b ? 1 : -1;
+            }
+        };
+        relations = [...Object.values(relations)];
+        relations.sort(compare);
+        if (offset && number) {
+            relations.splice(0, offset);
+            relations.splice(number)
         }
-        let params = [this._connParam.table, subject, property];
-        if ((typeof number === 'number') && (typeof offset === 'number')) {
-            preparedSql += " LIMIT ?,?";
-            params.push(offset);
-            params.push(number);
-        }
-        else if (typeof number === 'number') {
-            preparedSql += " LIMIT ?";
-            params.push(number);
-        }
-        else if (typeof offset === 'number') {
-            preparedSql += " LIMIT ?,9999999999999";
-            params.push(offset);
-        }
-        const sql = Mysql.format(preparedSql, params);
-        const mysql = await MysqlPool.fetch(this._connParam);
-
-        return await new Promise((resolve, reject) => {
-            mysql.query(sql, (error, rows, fields) => {
-                mysql.release();
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve(rows.map(toRelation));
-            });
-        });
+        return relations;
     }
 }
+

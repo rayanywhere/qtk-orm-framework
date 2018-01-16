@@ -22,16 +22,19 @@ module.exports = class {
         let object = undefined;
         if (this._hasCache)
             object = await Media.create(TYPE, this._router.cache.hash(id)).get(id);
-        if (object == undefined && this._hasPersistence)
+        if (object == undefined && this._hasPersistence) {
             object = await Media.create(TYPE, this._router.persistence.hash(id)).get(id);
+            if (this._hasCache && object)
+                await Media.create(TYPE, this._router.cache.hash(id)).set(object);
+        }
         return object;
     }
 
     async set(object) {
         if (this._hasCache)
-            await Media.create(TYPE, this._router.cache.hash(id)).set(object);
+            await Media.create(TYPE, this._router.cache.hash(object.id)).set(object);
         if (this._hasPersistence)
-            await Media.create(TYPE, this._router.persistence.hash(id)).set(object);
+            await Media.create(TYPE, this._router.persistence.hash(object.id)).set(object);
     }
 
     async del(id) {

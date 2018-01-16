@@ -7,7 +7,7 @@ module.exports = {
                 port: 3306,
                 user: "root",
                 password: "",
-                database: "db_test",
+                database: "db_test_game",
                 table: "o_user"
             }
         ],
@@ -19,9 +19,9 @@ module.exports = {
         shards: [
             {
                 media: "memcache",
-                host: "10.10.5.19",
+                host: "localhost",
                 port: 50034,
-                prefix: 'user_',
+                prefix: 'o_user_',
                 timeout: 100
             }
         ],
@@ -34,12 +34,7 @@ module.exports = {
             {
                 host: "localhost",
                 port: 50034,
-                key: 'user_queue_0'
-            },
-            {
-                host: "localhost",
-                port: 50034,
-                key: 'user_queue_1'
+                key: 'queue_o_user_0'
             }
         ],
         hash: function (id) {

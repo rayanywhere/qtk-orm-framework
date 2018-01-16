@@ -8,20 +8,11 @@ module.exports = {
                 user: "root",
                 password: "",
                 database: "db_test_game",
-                table: "o_user"
-            },
-            {
-                media: "mysql",
-                host: "localhost",
-                port: 3307,
-                user: "root",
-                password: "",
-                database: "db_test_game",
-                table: "o_user"
+                table: "r_user_friend"
             }
         ],
         hash: function (id) {
-            return this.shards[ parseInt(id.substr(-2,2), 16) % 2 ];
+            return this.shards[0];
         }
     },
     cache: {
@@ -30,19 +21,12 @@ module.exports = {
                 media: "memcache",
                 host: "localhost",
                 port: 50034,
-                prefix: 'o_user_',
-                timeout: 100
-            },
-            {
-                media: "memcache",
-                host: "localhost",
-                port: 50035,
-                prefix: 'o_user_',
+                prefix: 'r_user_friend_',
                 timeout: 100
             }
         ],
         hash: function (id) {
-            return this.shards[ parseInt(id.substr(-2,2), 16) % 2 ];
+            return this.shards[0];
         }
     },
     queue: {
@@ -50,12 +34,12 @@ module.exports = {
             {
                 host: "localhost",
                 port: 50034,
-                key: 'queue_o_user_0'
+                key: 'queue_r_user_friend_0'
             },
             {
                 host: "localhost",
-                port: 50035,
-                key: 'queue_o_user_1'
+                port: 50034,
+                key: 'queue_r_user_friend_1'
             }
         ],
         hash: function (id) {

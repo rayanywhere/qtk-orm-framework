@@ -1,5 +1,5 @@
 module.exports = object({
     subject: skey(32),
-    object: ikey(),
+    object: skey(32),
     createdTime: ikey()
 });

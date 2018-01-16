@@ -7,8 +7,8 @@ module.exports = {
                 port: 3306,
                 user: "root",
                 password: "",
-                database: "db_test",
-                table: "o_school_building"
+                database: "db_test_game",
+                table: "o_question"
             }
         ],
         hash: function (id) {
@@ -21,7 +21,7 @@ module.exports = {
                 media: "memcache",
                 host: "localhost",
                 port: 50034,
-                prefix: 'school_building_',
+                prefix: 'o_question_',
                 timeout: 100
             }
         ],
@@ -29,5 +29,4 @@ module.exports = {
             return this.shards[0];
         }
     }
-
 };
