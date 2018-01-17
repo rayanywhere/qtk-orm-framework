@@ -9,19 +9,10 @@ module.exports = {
                 password: "",
                 database: "db_test_game",
                 table: "o_user"
-            },
-            {
-                media: "mysql",
-                host: "localhost",
-                port: 3307,
-                user: "root",
-                password: "",
-                database: "db_test_game",
-                table: "o_user"
             }
         ],
         hash: function (id) {
-            return this.shards[ parseInt(id.substr(-2,2), 16) % 2 ];
+            return this.shards[0];
         }
     },
     cache: {

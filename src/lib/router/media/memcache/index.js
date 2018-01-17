@@ -9,26 +9,30 @@ module.exports = class {
         }
     }
 
-    async has(id)  {
+    async has(key) {
         const memcache = new Memcache(`${this._connParam.host}:${this._connParam.port}`, this._config);
-        const key = `${this._connParam.prefix}${id}`;
+        key = `${this._connParam.prefix}${key}`;
         return await new Promise((resolve, reject) => {
-            memcache.get(key, function (err, object) {
+            memcache.get(key, function (err, data) {
                 memcache.end();
                 if (err) {
                     reject(err);
                     return;
                 }
-                return object !== undefined;
+                if (data) {
+                    resolve(true);
+                    return;
+                }
+                resolve(false)
             })
-        })
+        });
     }
 
-    async set(object) {
+    async set(key, data) {
         const memcache = new Memcache(`${this._connParam.host}:${this._connParam.port}`, this._config);
-        const key = `${this._connParam.prefix}${object.id}`;
+        key = `${this._connParam.prefix}${key}`;
         return await new Promise((resolve, reject) => {
-            memcache.set(key, object, 0, function (err) {
+            memcache.set(key, JSON.stringify(data), 0, function (err) {
                 memcache.end();
                 if (err) {
                     reject(err);
@@ -39,26 +43,30 @@ module.exports = class {
         });
     }
 
-    async get(id) {
+    async get(key) {
         const memcache = new Memcache(`${this._connParam.host}:${this._connParam.port}`, this._config);
-        const key = `${this._connParam.prefix}${id}`;
+        key = `${this._connParam.prefix}${key}`;
         return await new Promise((resolve, reject) => {
-            memcache.get(key, function (err, object) {
+            memcache.get(key, function (err, data) {
                 memcache.end();
                 if (err) {
                     reject(err);
                     return;
                 }
-                resolve(object);
+                if (data) {
+                    resolve(JSON.parse(data));
+                    return;
+                }
+                return undefined;
             })
         })
     }
 
-    async del(id) {
+    async del(key) {
         const memcache = new Memcache(`${this._connParam.host}:${this._connParam.port}`, this._config);
-        const key = `${this._connParam.prefix}${id}`;
+        key = `${this._connParam.prefix}${key}`;
         return await new Promise((resolve, reject) => {
-            memcache.del(key, function (err, object) {
+            memcache.del(key, function (err, data) {
                 memcache.end();
                 if (err) {
                     reject(err);

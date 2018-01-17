@@ -1,6 +1,11 @@
 const Media = require('./media');
 const assert = require('assert');
-const TYPE = 'object';
+
+function extractStructure(object) {
+    let id = object.id;
+    delete object.id;
+    return {id, object}
+}
 
 module.exports = class {
 
@@ -11,37 +16,54 @@ module.exports = class {
         assert(this._hasCache || this._hasPersistence, 'at least one storage media needed');
     }
 
+    _getMedias(id) {
+        let cache = undefined;
+        let persistence = undefined;
+        if (this._hasCache) cache = Media.create(this._router.cache.hash(id));
+        if (this._hasPersistence) persistence = Media.create(this._router.persistence.hash(id));
+        return {
+            cache: cache,
+            persistence: persistence
+        }
+    }
+
     async has(id) {
-        if (this._hasCache && await Media.create(TYPE, this._router.cache.hash(id)).has(id))
+        let {cache, persistence} = this._getMedias(id);
+        if (this._hasCache && await cache.has(id))
             return true;
-        return this._hasPersistence && await Media.create(TYPE, this._router.persistence.hash(id).has(id));
+        return this._hasPersistence && await persistence.has(id);
     }
 
 
     async get(id) {
+        let {cache, persistence} = this._getMedias(id);
         let object = undefined;
         if (this._hasCache)
-            object = await Media.create(TYPE, this._router.cache.hash(id)).get(id);
+            object = await cache.get(id);
         if (object == undefined && this._hasPersistence) {
-            object = await Media.create(TYPE, this._router.persistence.hash(id)).get(id);
+            object = await persistence.get(id);
             if (this._hasCache && object)
-                await Media.create(TYPE, this._router.cache.hash(id)).set(object);
+                await cache.set(id, object);
         }
+        if (object) object.id = id;
         return object;
     }
 
-    async set(object) {
+    async set(objectItem) {
+        let {id, object} = extractStructure(objectItem);
+        let {cache, persistence} = this._getMedias(id);
         if (this._hasCache)
-            await Media.create(TYPE, this._router.cache.hash(object.id)).set(object);
+            await cache.set(id, object);
         if (this._hasPersistence)
-            await Media.create(TYPE, this._router.persistence.hash(object.id)).set(object);
+            await persistence.set(object);
     }
 
     async del(id) {
+        let {cache, persistence} = this._getMedias(id);
         if (this._hasCache)
-            await Media.create(TYPE, this._router.cache.hash(id)).del(id);
+            await cache.del(id);
         if (this._hasPersistence)
-            await Media.create(TYPE, this._router.persistence.hash(id)).del(id);
+            await persistence.del(id);
     }
 
 };

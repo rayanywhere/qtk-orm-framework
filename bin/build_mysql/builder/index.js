@@ -35,35 +35,22 @@ module.exports = class {
         return  Mysql.format(
         `CREATE TABLE IF NOT EXISTS ??.??
         (
-            id ${resolveSqlType(this._schema.properties.id)},
-            object JSON,
+            \`id\` ${resolveSqlType(this._schema.properties.id)},
+            \`data\` JSON,
             PRIMARY KEY(id)
         )`, [shard.database, shard.table]);
     }
 
     _generateRelationSql(shard) {
-        let params = [shard.database, shard.table, 'subject', 'object'];
+        let params = [shard.database, shard.table];
         let sql = 
         `CREATE TABLE IF NOT EXISTS ??.??
         (
-            ?? ${resolveSqlType(this._schema.properties.subject)},
-            ?? ${resolveSqlType(this._schema.properties.object)},
-            relation JSON,
+            \`id\` ${resolveSqlType(this._schema.properties.subject)},
+            \`data\` JSON,
+            PRIMARY KEY(\`id\`)
+        )
         `;
-        for (let key of Object.keys(this._schema.properties)) {
-            if (key != 'object' && key != 'subject') {
-                if (needAddIndex(this._schema.properties[key])) {
-                    sql += `    ?? ${resolveSqlType(this._schema.properties[key])} GENERATED ALWAYS AS (relation->"$.${key}"),`;
-                    sql += `    INDEX ${key}(${key}),`;
-                    params.push(key);
-                }
-            }
-        }
-        sql +=
-        `
-            PRIMARY KEY(??, ??)
-        )`;
-        params.push('subject', 'object');
         return Mysql.format(sql, params);
     }
 }
@@ -83,8 +70,4 @@ function resolveSqlType(node) {
             return `VARCHAR(${maxLen})`;
         }
     } 
-}
-
-function needAddIndex(node) {
-    return (node.type == 'ikey' || node.type == 'skey' );
 }

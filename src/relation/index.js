@@ -8,42 +8,31 @@ module.exports = class {
     }
 
     async fetch(subject, object) {
-        const storage = this._router.find(subject);
-        const relation = await storage.fetch(subject, object);
-        this._schema.validate(relation);        
-        return relation;
+        return await this._router.fetch(subject, object);
     }
 
     async put(relation) {
         this._schema.validate(relation);
-        const storage = this._router.find(relation.subject);
-        await storage.put(relation);
+        await this._router.put(relation);
     }
 
     async has(subject, object) {
-        const storage = this._router.find(subject);
-        return await storage.has(subject, object);
+        return await this._router.has(subject, object);
     }
 
     async remove(subject, object) {
-        const storage = this._router.find(subject);
-        await storage.remove(subject, object);
+        return await this._router.remove(subject, object);
     }
 
     async removeAll(subject) {
-        const storage = this._router.find(subject);
-        await storage.removeAll(subject);
+        return await this._router.removeAll(subject);
     }
 
     async count(subject) {
-        const storage = this._router.find(subject);
-        return await storage.count(subject);
+        return await this._router.count(subject);
     }
 
     async list(subject, property, order, offset = undefined, number = undefined) {
-        const storage = this._router.find(subject);
-        const relations = await storage.list(subject, property, order, offset, number);
-        relations.forEach(relation => this._schema.validate(relation));
-        return relations;
+        return await this._router.list(subject, property, order, offset, number);
     }
-};
+}

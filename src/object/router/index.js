@@ -6,8 +6,8 @@ const deprecatedCheckMap = new Map();
 module.exports = class {
 
     constructor(name, routerPath) {
-        this._currentRouterPath = `${routerPath}/relation/${name.replace(/\./g, '/')}.js`;
-        this._deprecatedRouterPath = `${routerPath}/relation/${name.replace(/\./g, '/')}.deprecated.js`;
+        this._currentRouterPath = `${routerPath}/object/${name.replace(/\./g, '/')}.js`;
+        this._deprecatedRouterPath = `${routerPath}/object/${name.replace(/\./g, '/')}.deprecated.js`;
         if (!deprecatedCheckMap.has(this._deprecatedRouterPath)) {
             deprecatedCheckMap.set(this._deprecatedRouterPath, fs.existsSync(this._deprecatedRouterPath));
         }
