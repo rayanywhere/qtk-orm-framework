@@ -12,10 +12,7 @@ function extractStructure(relation) {
 module.exports = class extends KV {
 
     constructor(routerPath) {
-        this._router = require(routerPath);
-        this._hasCache = this._router.cache.shards.length > 0;
-        this._hasPersistence = this._router.persistence.shards.length > 0;
-        assert(this._hasCache || this._hasPersistence, 'at least one storage media needed');
+        super(routerPath);
     }
 
     async fetch(subject, object) {

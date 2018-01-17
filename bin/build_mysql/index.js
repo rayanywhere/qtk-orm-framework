@@ -33,8 +33,8 @@ opts.parse(
         { name : 'module', required: true },
     ], true);
 
-const schemaDir = opts.get('s');
-const routerDir = opts.get('r');
+const schemaDir = path.resolve(opts.get('s'));
+const routerDir = path.resolve(opts.get('r'));
 const type = opts.args()[0];
 const moduleName = opts.args()[1];
 

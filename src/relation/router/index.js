@@ -25,10 +25,7 @@ module.exports = class {
 
     async fetch(subject, object) {
         await this._syncDeprecatedToCurrent(subject);
-        if (await this._cRouter.has(subject, object)) {
-            return true;
-        }
-        return false;
+        return await this._cRouter.fetch(subject, object);
     }
 
     async put(relation) {

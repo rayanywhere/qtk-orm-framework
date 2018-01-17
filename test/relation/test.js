@@ -4,63 +4,41 @@ const schemaDir = `${__dirname}/../../example/schema`;
 const routerDir = `${__dirname}/../../example/router`;
 const ORM = require('../../')(schemaDir, routerDir);
 
-const USERID = '00000000000000000000000000000001';
-const USER_INFO = {
-    id: USERID,
-    name: 'Yui',
-    level: 10,
-    score: 350,
-    avatar: 'Yui`s avatar uri',
-    gender: 0,
-    lastLoc: {
-        longitude: '113.46',
-        latitude: '22.27'
-    },
-    isVip: false
-};
+const Data = require('../data');
 
-describe('#user_not_exist', function () {
-    //has get set del
-    it('[has]', async function () {
-        let exist = await ORM.Object('user').has(USERID);
-        assert(exist == false, `should not exist`);
-    });
-
-    it('[get]', async function () {
-        let user = await ORM.Object('user').get(USERID);
-        assert(user == undefined, `should get undefined`);
-    });
-
-    it('[del]', async function () {
-        await ORM.Object('user').del(USERID);
-    });
-
-    it('[set]', async function () {
-        await ORM.Object('user').set(USER_INFO);
-    });
-});
-
-describe('#user_exist', function () {
-    //has get set del
+describe('#relation', function () {
+    //fetch put has remove removeAll count list
     before( async function() {
-        await ORM.Object('user').set(USER_INFO);
+        await ORM.Object('user').del(Data.user.Yui.id);
+        await ORM.Object('user').del(Data.user.Jessica.id);
+        await ORM.Object('user').del(Data.user.Ken.id);
+        await ORM.Object('user').set(Data.user.Yui);
+        await ORM.Object('user').set(Data.user.Jessica);
+        await ORM.Object('user').set(Data.user.Ken);
     });
 
-    it('[has]', async function () {
-        let exist = await ORM.Object('user').has(USERID);
-        assert(exist == true, `should exist`);
+    after(async function() {
+        await ORM.Object('user').del(Data.user.Yui.id);
+        await ORM.Object('user').del(Data.user.Jessica.id);
+        await ORM.Object('user').del(Data.user.Ken.id);
     });
 
-    it('[get]', async function () {
-        let user = await ORM.Object('user').get(USERID);
-        assert(user.id = USERID, `should get user yui`);
-    });
 
-    it('[del]', async function () {
-        await ORM.Object('user').del(USERID);
-    });
+    // it('[has] not exist', async function () {
+    //     let areFriend = await ORM.Relation('user.friend').has(Data.user.Yui.id, Data.user.Jessica.id);
+    //     assert(!areFriend, 'they are not friend right now');
+    // });
 
-    it('[set]', async function () {
-        await ORM.Object('user').set(USER_INFO);
-    });
+    // it('[fetch] not exist', async function () {
+    //     let relation = await ORM.Relation('user.friend').fetch(Data.user.Yui.id, Data.user.Jessica.id);
+    //     assert(relation == undefined, 'they are not friend right now');
+    // });
+
+
+
+
+
+
+
+
 });

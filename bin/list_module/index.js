@@ -25,21 +25,21 @@ opts.parse(
         { name : 'type' , required : true }
     ], true);
 
-let schemaDir = opts.get('s');
-let routerDir = opts.get('r');
+const schemaDir = path.resolve(opts.get('s'));
+const routerDir = path.resolve(opts.get('r'));
 let type = opts.args()[0];
 
 try {
-    list_module(schemaDir, routerDir, type).map(item => console.log(item));
+    listModule(schemaDir, routerDir, type).map(item => console.log(item));
 } catch(err) {
     console.error(err.stack);
     process.exit(-1);
 }
 
 
-function list_module(schemaDir, routerDir, type) {
+function listModule(schemaDir, routerDir, type) {
     let moduleList = [];
-    walk(schemaDir, {
+    walk(`${schemaDir}/${type}`, {
         nodir: true,
         filter: item => item.path.endsWith('.js')
     }).forEach((item) => {
