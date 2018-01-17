@@ -12,7 +12,6 @@
   },
   "bin": {
     "orm_build_mysql": "bin/build_mysql/index.js",
-    "orm_add_relation_index": "bin/add_relation_index/index.js",
     "orm_list_module": "bin/list_module/index.js",
     "orm_migrate": "bin/migrate.js"
   },
