@@ -57,7 +57,8 @@ module.exports = class {
                     resolve(JSON.parse(data));
                     return;
                 }
-                return undefined;
+                resolve(undefined);
+                return;
             })
         })
     }

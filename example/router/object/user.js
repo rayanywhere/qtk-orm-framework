@@ -8,7 +8,8 @@ module.exports = {
                 user: "root",
                 password: "",
                 database: "db_test_game",
-                table: "o_user"
+                table: "o_user",
+                tag: 'current'
             }
         ],
         hash: function (id) {
@@ -20,38 +21,13 @@ module.exports = {
             {
                 media: "memcache",
                 host: "localhost",
-                port: 50034,
-                prefix: 'o_user_',
-                timeout: 100
-            },
-            {
-                media: "memcache",
-                host: "localhost",
                 port: 50035,
                 prefix: 'o_user_',
                 timeout: 100
             }
         ],
         hash: function (id) {
-            return this.shards[ parseInt(id.substr(-2,2), 16) % 2 ];
+            return this.shards[0];
         }
-    },
-    queue: {
-        shards: [
-            {
-                host: "localhost",
-                port: 50034,
-                key: 'queue_o_user_0'
-            },
-            {
-                host: "localhost",
-                port: 50035,
-                key: 'queue_o_user_1'
-            }
-        ],
-        hash: function (id) {
-            return this.shards[ parseInt(id.substr(-2,2), 16) % 2 ];
-        }
-    },
-
+    }
 };

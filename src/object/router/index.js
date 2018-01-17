@@ -13,8 +13,9 @@ module.exports = class {
         }
         this._hasDeprecated = deprecatedCheckMap.get(this._deprecatedRouterPath);
         this._cRouter = new Router(this._currentRouterPath);
-        if (this._hasDeprecated)
+        if (this._hasDeprecated) {
             this._dRouter = new Router(this._deprecatedRouterPath);
+        }
     }
 
     async has(id) {

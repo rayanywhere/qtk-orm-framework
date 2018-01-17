@@ -8,7 +8,8 @@ module.exports = {
                 user: "root",
                 password: "",
                 database: "db_test_game",
-                table: "o_user"
+                table: "o_user",
+                tag: 'deprecated'
             }
         ],
         hash: function (id) {

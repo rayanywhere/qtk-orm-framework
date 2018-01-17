@@ -17,14 +17,14 @@ module.exports = class {
             this._dRouter = new Router(this._deprecatedRouterPath);
     }
 
-    async _asyncDeprecatedToCurrent(subject) {
-        if ((this._hasDeprecated) && (!await this.cRouter.isKeyExist(subject)) && (!await this.dRouter.isKeyExist(subject))) {
-            await this._cRouter.setRaw(subject, await this._dRouter.getRaw(subject));
+    async _syncDeprecatedToCurrent(subject) {
+        if ((this._hasDeprecated) && (!await this.cRouter.hasKey(subject)) && (!await this.dRouter.hasKey(subject))) {
+            await this._cRouter.setKey(subject, await this._dRouter.getKey(subject));
         }
     }
 
     async fetch(subject, object) {
-        await this._asyncDeprecatedToCurrent(subject);
+        await this._syncDeprecatedToCurrent(subject);
         if (await this._cRouter.has(subject, object)) {
             return true;
         }
@@ -32,12 +32,12 @@ module.exports = class {
     }
 
     async put(relation) {
-        await this._asyncDeprecatedToCurrent(relation.subject);
+        await this._syncDeprecatedToCurrent(relation.subject);
         await this._cRouter.put(relation);
     }
 
     async has(subject, object) {
-        await this._asyncDeprecatedToCurrent(subject);
+        await this._syncDeprecatedToCurrent(subject);
         if (await this._cRouter.has(subject, object))
             return true;
         return false;
@@ -58,12 +58,12 @@ module.exports = class {
     }
 
     async count(subject) {
-        await this._asyncDeprecatedToCurrent(subject);
+        await this._syncDeprecatedToCurrent(subject);
         return await this._cRouter.count(subject);
     }
 
     async list(subject, property, order, offset = undefined, number = undefined) {
-        await this._asyncDeprecatedToCurrent(subject);
+        await this._syncDeprecatedToCurrent(subject);
         return await this._cRouter.list(subject, property, order, offset, number);
     }
 }

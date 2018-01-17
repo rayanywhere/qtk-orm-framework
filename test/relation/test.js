@@ -5,7 +5,6 @@ const routerDir = `${__dirname}/../../example/router`;
 const ORM = require('../../')(schemaDir, routerDir);
 
 const USERID = '00000000000000000000000000000001';
-const OLD_USERID = '00000000000000000000000000000002';
 const USER_INFO = {
     id: USERID,
     name: 'Yui',
@@ -20,29 +19,8 @@ const USER_INFO = {
     isVip: false
 };
 
-const OLD_USER_INFO = {
-    id: OLD_USERID,
-    name: 'Ken',
-    level: 21,
-    score: 2100,
-    gender: 1,
-    lastLoc: {
-        longitude: '123.11',
-        latitude: '24.05'
-    },
-    isVip: true
-};
-
 describe('#user_not_exist', function () {
     //has get set del
-    before( async function() {
-        await ORM.Object('user').del(USERID);
-    });
-
-    after(async function() {
-        await ORM.Object('user').del(USERID);
-    });
-
     it('[has]', async function () {
         let exist = await ORM.Object('user').has(USERID);
         assert(exist == false, `should not exist`);
@@ -68,11 +46,6 @@ describe('#user_exist', function () {
         await ORM.Object('user').set(USER_INFO);
     });
 
-    after(async function() {
-        await ORM.Object('user').del(USERID);
-        await ORM.Object('user').del(OLD_USERID);
-    });
-
     it('[has]', async function () {
         let exist = await ORM.Object('user').has(USERID);
         assert(exist == true, `should exist`);
@@ -90,10 +63,4 @@ describe('#user_exist', function () {
     it('[set]', async function () {
         await ORM.Object('user').set(USER_INFO);
     });
-
-    it('[set] old structure object, avatar is not exist', async function () {
-        await ORM.Object('user').set(OLD_USER_INFO);
-        let old = await ORM.Object('user').get(OLD_USERID);
-        assert(old.avatar, 'old structure avatar should set automatically');
-    })
 });

@@ -20,6 +20,7 @@ module.exports = class {
     }
 
     async set(object) {
+        object = Object.assign({}, object);
         this._schema.validate(object);
         await this._router.set(object);
     }

@@ -17,10 +17,10 @@ module.exports = class {
                     return;
                 }
                 if (rows.length < 1) {
-                    resolve(true);
+                    resolve(false);
                     return;
                 }
-                resolve(false);
+                resolve(true);
             });
         });
     }
@@ -45,7 +45,7 @@ module.exports = class {
     }
 
     async set(key, data) {
-        const sql = Mysql.format('REPLACE INTO ?? SET ??=?, ??=?', [this._connParam.table, 'id', key, 'data', data]);
+        const sql = Mysql.format('REPLACE INTO ?? SET ??=?, ??=?', [this._connParam.table, 'id', key, 'data', JSON.stringify(data)]);
         const mysql = await MysqlPool.fetch(this._connParam);
         return await new Promise((resolve, reject) => {
             mysql.query(sql, (error, rows, fields) => {

@@ -12,6 +12,7 @@ module.exports = class {
     }
 
     async put(relation) {
+        relation = Object.assign({}, relation);
         this._schema.validate(relation);
         await this._router.put(relation);
     }

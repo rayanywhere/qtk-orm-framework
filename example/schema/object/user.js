@@ -5,7 +5,7 @@ module.exports = object({
     score: integer(0),
     avatar: string('default_avatar_resource_id'),
     gender: integer(1),
-    last_loc: object({
+    lastLoc: object({
         longitude: string(''),
         latitude: string('')
     }),
