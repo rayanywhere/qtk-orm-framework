@@ -49,7 +49,7 @@ module.exports = class extends KV {
     }
 
     async removeAll(subject) {
-        await this.del(subject);
+        await this.delKey(subject);
     }
 
     async count(subject) {

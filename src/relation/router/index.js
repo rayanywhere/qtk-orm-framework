@@ -18,7 +18,7 @@ module.exports = class {
     }
 
     async _syncDeprecatedToCurrent(subject) {
-        if ((this._hasDeprecated) && (!await this.cRouter.hasKey(subject)) && (!await this.dRouter.hasKey(subject))) {
+        if ((this._hasDeprecated) && (!await this._cRouter.hasKey(subject)) && (await this._dRouter.hasKey(subject))) {
             await this._cRouter.setKey(subject, await this._dRouter.getKey(subject));
         }
     }

@@ -9,7 +9,7 @@ module.exports = {
                 password: "",
                 database: "db_test_game",
                 table: "o_user",
-                tag: 'deprecated'
+                tag: 'current'
             }
         ],
         hash: function (id) {
@@ -21,7 +21,7 @@ module.exports = {
             {
                 media: "memcache",
                 host: "localhost",
-                port: 50034,
+                port: 50035,
                 prefix: 'o_user_',
                 timeout: 100
             }
@@ -29,18 +29,5 @@ module.exports = {
         hash: function (id) {
             return this.shards[0];
         }
-    },
-    queue: {
-        shards: [
-            {
-                host: "localhost",
-                port: 50034,
-                key: 'queue_o_user_0'
-            }
-        ],
-        hash: function (id) {
-            return this.shards[0];
-        }
-    },
-
+    }
 };

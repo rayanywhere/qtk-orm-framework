@@ -18,26 +18,23 @@ module.exports = class {
         }
     }
 
+    async _syncDeprecatedToCurrent(id) {
+        if ((this._hasDeprecated) && (!await this._cRouter.hasKey(id)) && (await this._dRouter.hasKey(id))) {
+            await this._cRouter.setKey(id, await this._dRouter.getKey(id));
+        }
+    }
+
     async has(id) {
+        await this._syncDeprecatedToCurrent(id);
         if (await this._cRouter.has(id))
             return true;
-        if (this._hasDeprecated && await this._dRouter.has(id)) {
-            await this._cRouter.set(await this._dRouter.get(id));
-            return true;
-        }
         return false;
     }
 
     async get(id) {
+        await this._syncDeprecatedToCurrent(id);
         let object = undefined;
-        object = await this._cRouter.get(id);
-        if (object === undefined && this._hasDeprecated) {
-            object = await this._dRouter.get(id);
-            if (object !== undefined) {
-                await this._cRouter.set(object);
-            }
-        }
-        return object;
+        return await this._cRouter.get(id);
     }
 
     async set(object) {

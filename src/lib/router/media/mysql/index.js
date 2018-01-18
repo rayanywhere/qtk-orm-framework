@@ -39,7 +39,7 @@ module.exports = class {
                     resolve(undefined);
                     return;
                 }
-                resolve(JSON.parse(rows[0]));
+                resolve(JSON.parse(rows[0].data));
             });
         });
     }
