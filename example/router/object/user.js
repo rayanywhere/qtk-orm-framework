@@ -9,7 +9,6 @@ module.exports = {
                 password: "",
                 database: "db_test_game_new",
                 table: "o_user",
-                tag: 'current'
             }
         ],
         hash: function (id) {
