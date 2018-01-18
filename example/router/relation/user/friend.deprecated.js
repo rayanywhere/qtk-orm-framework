@@ -7,7 +7,7 @@ module.exports = {
                 port: 3306,
                 user: "root",
                 password: "",
-                database: "db_test_game_new",
+                database: "db_test_game",
                 table: "r_user_friend"
             }
         ],
@@ -20,7 +20,7 @@ module.exports = {
             {
                 media: "memcache",
                 host: "localhost",
-                port: 50035,
+                port: 50034,
                 prefix: 'r_user_friend_',
                 timeout: 100
             }

@@ -43,14 +43,14 @@ module.exports = class {
     async remove(subject, object) {
         await this._cRouter.remove(subject, object);
         if (this._hasDeprecated) {
-            await this.dRouter.remove(subject, object);
+            await this._dRouter.remove(subject, object);
         }
     }
 
     async removeAll(subject) {
         await this._cRouter.removeAll(subject);
         if (this._hasDeprecated) {
-            await this.dRouter.removeAll(subject);
+            await this._dRouter.removeAll(subject);
         }
     }
 
