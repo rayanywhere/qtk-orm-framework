@@ -12,8 +12,7 @@
   },
   "bin": {
     "orm_build_mysql": "bin/build_mysql/index.js",
-    "orm_list_module": "bin/list_module/index.js",
-    "orm_migrate": "bin/migrate.js"
+    "orm_list_module": "bin/list_module/index.js"
   },
   "repository": {
     "type": "git",
