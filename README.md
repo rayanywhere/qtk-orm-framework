@@ -29,7 +29,7 @@ qtk-orm-framework is an orm database framework, support mysql and memcache. This
   - **object** : type for value
   - **array** : type for value
 
-```
+```javascript
     // see example/schema/relation/user/friend.js
     module.exports = object({
         subject: skey(32),
@@ -37,7 +37,7 @@ qtk-orm-framework is an orm database framework, support mysql and memcache. This
         createdTime: string()
     });
 ```
-```
+```javascript
     // see example/schema/relation/user/battle_record.js
     // what relation keeping depends on youself
     module.exports = object({
@@ -61,7 +61,7 @@ Router file has two type, currently and deprecated. current definition describe 
     user.deprecated.js
     user.js
 ```
-```
+```javascript
     // see example/router/object/user.deprecated.js
     module.exports = {
         persistence: {
