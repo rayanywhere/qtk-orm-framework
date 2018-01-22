@@ -1,9 +1,6 @@
 const assert = require('assert');
 const ORM = require('../');
-ORM.setup({
-    objectPath: `${__dirname}/../example/object`, 
-    relationPath: `${__dirname}/../example/relation`
-});
+ORM.setup(`${__dirname}/../example`);
 const ObjectUser = new ORM.Object('user');
 const ObjectMessage = new ORM.Object('message');
 const RelationUserMessage = new ORM.Relation('user.message');
