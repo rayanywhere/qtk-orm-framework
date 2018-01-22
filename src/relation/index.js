@@ -1,39 +1,98 @@
-const Schema = require('./schema');
-const Router = require('./router');
+const Schema = require('../lib/schema');
+const Router = require('../lib/router');
+const assert = require('assert');
+const config = require('../config');
 
-module.exports = class {
-    constructor(name, schemaPath, routerPath) {
-        this._schema = Schema.get(name, schemaPath);
-        this._router = new Router(name, routerPath);
+module.exports = class R {
+    static get Order() {
+        return {ASC: 0, DESC: 1};
+    }
+    
+    constructor(name) {
+        this._schema = new Schema(name, `${config.path.relation}/schema`);
+        this._router = new Router(name, `${config.path.relation}/router`);
+    }
+
+    async _load(subject) {
+        const relations = await this._router.get(subject);
+        if (relations === undefined) {
+            return [];
+        }
+        assert(Array.isArray(relations), `expect data to be an array of subject ${subject} ${relations}`);
+        return relations;
+    }
+
+    async _save(subject, relations) {
+        await this._router.set(subject, relations);
     }
 
     async fetch(subject, object) {
-        return await this._router.fetch(subject, object);
+        const relations = await this._load(subject);
+        const position = relations.findIndex(_ => _.object === object);
+        if (position < 0) {
+            return undefined;
+        }
+        let relation = Object.assign({subject}, relations[position]);
+        this._schema.normalize(relation);
+        return relation;
     }
 
     async put(relation) {
+        this._schema.verify(relation);
+
+        const subject = relation.subject;
         relation = Object.assign({}, relation);
-        this._schema.validate(relation);
-        await this._router.put(relation);
+        delete relation.subject;
+
+        let relations = await this._load(subject);
+        const position = relations.findIndex(_ => _.object === relation.object);
+        if (position < 0) {
+            relations.push(relation);
+        }
+        else {
+            relations[position] = relation;
+        }
+        await this._save(subject, relations);
     }
 
     async has(subject, object) {
-        return await this._router.has(subject, object);
+        return (await this.fetch(subject, object) !== undefined);
     }
 
     async remove(subject, object) {
-        return await this._router.remove(subject, object);
+        let relations = await this._load(subject);
+        const position = relations.findIndex(_ => _.object === object);
+        if (position >= 0) {
+            relations.splice(position, 1);
+            await this._save(subject, relations);
+        }
     }
 
     async removeAll(subject) {
-        return await this._router.removeAll(subject);
+        return await this._save(subject,[]);
     }
 
     async count(subject) {
-        return await this._router.count(subject);
+        let relations = await this._load(subject);
+        return relations.length;
     }
 
     async list(subject, property, order, offset = undefined, number = undefined) {
-        return await this._router.list(subject, property, order, offset, number);
+        let relations = await this._load(subject);
+
+        relations.sort((lhs, rhs) => {
+            return (order === R.Order.ASC) ? lhs[property] - rhs[property] : rhs[property] - lhs[property];
+        });
+
+        if (offset !== undefined) {
+            relations.splice(0, offset);
+        }
+        if (number !== undefined) {
+            relations.splice(number);
+        }
+
+        relations = relations.map(_ => Object.assign({subject}, _));
+        relations.forEach(_ => {this._schema.normalize(_)});
+        return relations;
     }
 }

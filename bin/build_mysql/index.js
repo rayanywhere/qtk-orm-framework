@@ -9,41 +9,37 @@ const DatabaseExecutor = require('./executor/database');
 opts.parse(
     [
         { 
-            short       : 's',
-            long        : 'schema-dir',
-            description : 'schema资源目录',
-            value       : true,
-            required    : true, 
-        },
-        { 
-            short       : 'r',
-            long        : 'router-dir',
-            description : 'router资源目录',
+            short       : 'd',
+            long        : 'dir',
+            description : '资源目录',
             value       : true,
             required    : true, 
         },
         {
+            short       : 'p',
             long        : 'preview',
             description : '只打印执行sql日志,不实际生成数据库',
+            value       : true,
+            required    : false
+        },
+        {
+            short       : 'k',
+            long        : 'key-spec',
+            description : 'key的mysql属性，例如:VARCHAR(255)',
+            value       : true,
+            required    : true
         }
-    ]
-    ,
+    ],
     [
-        { name : 'type' , required : true },
         { name : 'module', required: true },
     ], true);
 
-const schemaDir = path.resolve(opts.get('s'));
-const routerDir = path.resolve(opts.get('r'));
-const type = opts.args()[0];
-const moduleName = opts.args()[1];
-
-const builder = new Builder(schemaDir, routerDir, type, moduleName);
+const routerDir = path.resolve(`${opts.get('dir')}/router`);
+const keyspec   = opts.get('key-spec');
+const builder = new Builder(keyspec, routerDir, opts.args()[0]);
 const executor = opts.get('preview') ? new PreviewExectuor() : new DatabaseExecutor();
 
-const actions = builder.exec();
-
-executor.exec(actions).catch(err => {
+executor.exec(builder.exec()).catch(err => {
     console.error(err.stack);
     process.exit(-1);
 });

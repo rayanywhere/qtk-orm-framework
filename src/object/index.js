@@ -1,31 +1,38 @@
-const Schema = require('./schema');
-const Router = require('./router');
+const Schema = require('../lib/schema');
+const Router = require('../lib/router');
+const config = require('../config');
 
 module.exports = class {
-    constructor(name, schemaPath, routerPath) {
-        this._schema = Schema.get(name, schemaPath);
-        this._router = new Router(name, routerPath);
+    constructor(name) {
+        this._schema = new Schema(name, `${config.path.object}/schema`);
+        this._router = new Router(name, `${config.path.object}/router`);
     }
 
     async has(id) {
-        return await this._router.has(id);
+        return (await this._router.get(id) !== undefined);
     }
 
     async get(id) {
-        let object = await this._router.get(id);
-        if (object !== undefined) {
-            this._schema.validate(object);
+        let obj = await this._router.get(id);
+        if (obj === undefined) {
+            return undefined;
         }
-        return object;
+        obj = Object.assign({id}, obj);
+        this._schema.normalize(obj);
+        return obj;
     }
 
-    async set(object) {
-        object = Object.assign({}, object);
-        this._schema.validate(object);
-        await this._router.set(object);
+    async set(obj) {
+        this._schema.verify(obj);
+        const id = obj.id;
+
+        obj = Object.assign({}, obj);
+        delete obj.id;
+
+        await this._router.set(id, obj);
     }
 
     async del(id) {
-        await this._router.del(id)
+        await this._router.del(id);
     }
 }

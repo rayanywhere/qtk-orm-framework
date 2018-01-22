@@ -7,39 +7,29 @@ const walk = require('klaw-sync');
 opts.parse(
     [
         { 
-            short       : 's',
-            long        : 'schema-dir',
-            description : 'schema资源目录',
-            value       : true,
-            required    : true
-        },
-        { 
-            short       : 'r',
-            long        : 'router-dir',
-            description : 'router资源目录',
+            short       : 'd',
+            long        : 'dir',
+            description : '资源目录',
             value       : true,
             required    : true
         }
-    ],
-    [
-        { name : 'type' , required : true }
     ], true);
 
-const schemaDir = path.resolve(opts.get('s'));
-const routerDir = path.resolve(opts.get('r'));
-let type = opts.args()[0];
+const schemaDir = path.resolve(`${opts.get('dir')}/schema`);
+const routerDir = path.resolve(`${opts.get('dir')}/router`);
 
 try {
-    listModule(schemaDir, routerDir, type).map(item => console.log(item));
-} catch(err) {
+    listModule(schemaDir, routerDir).map(item => console.log(item));
+}
+catch(err) {
     console.error(err.stack);
     process.exit(-1);
 }
 
 
-function listModule(schemaDir, routerDir, type) {
+function listModule(schemaDir, routerDir) {
     let moduleList = [];
-    walk(`${schemaDir}/${type}`, {
+    walk(schemaDir, {
         nodir: true,
         filter: item => item.path.endsWith('.js')
     }).forEach((item) => {
