@@ -14,8 +14,7 @@ describe('#basic', function () {
     before( async function() {
         await Promise.all([ObjectUser.set(Users[0]), ObjectUser.set(Users[1]), ObjectUser.set(Users[2])]);
         await Promise.all([ObjectMessage.set(Messages[0]), ObjectMessage.set(Messages[1])]);
-        await RelationUserMessage.put(UserMessages[0]);
-        await RelationUserMessage.put(UserMessages[1]);
+        await Promise.all([RelationUserMessage.put(UserMessages[0]), await RelationUserMessage.put(UserMessages[1])]);
     });
 
     after(async function() {

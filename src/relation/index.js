@@ -1,7 +1,9 @@
+const assert = require('assert');
+const Mutex = require('key_mutex');
 const Schema = require('../lib/schema');
 const Router = require('../lib/router');
-const assert = require('assert');
 const config = require('../config');
+
 
 module.exports = class R {
     static get Order() {
@@ -11,6 +13,7 @@ module.exports = class R {
     constructor(name) {
         this._schema = new Schema(name, `${config.path.relation}/schema`);
         this._router = new Router(name, `${config.path.relation}/router`);
+        this._mutex = Mutex.mutex();
     }
 
     async _load(subject) {
@@ -44,15 +47,17 @@ module.exports = class R {
         relation = Object.assign({}, relation);
         delete relation.subject;
 
-        let relations = await this._load(subject);
-        const position = relations.findIndex(_ => _.object === relation.object);
-        if (position < 0) {
-            relations.push(relation);
-        }
-        else {
-            relations[position] = relation;
-        }
-        await this._save(subject, relations);
+        await this._mutex.lock(subject, async() => {
+            let relations = await this._load(subject);
+            const position = relations.findIndex(_ => _.object === relation.object);
+            if (position < 0) {
+                relations.push(relation);
+            }
+            else {
+                relations[position] = relation;
+            }
+            await this._save(subject, relations);
+        });
     }
 
     async has(subject, object) {
@@ -60,12 +65,14 @@ module.exports = class R {
     }
 
     async remove(subject, object) {
-        let relations = await this._load(subject);
-        const position = relations.findIndex(_ => _.object === object);
-        if (position >= 0) {
-            relations.splice(position, 1);
-            await this._save(subject, relations);
-        }
+        await this._mutex.lock(subject, async() => {
+            let relations = await this._load(subject);
+            const position = relations.findIndex(_ => _.object === object);
+            if (position >= 0) {
+                relations.splice(position, 1);
+                await this._save(subject, relations);
+            }
+        });       
     }
 
     async removeAll(subject) {

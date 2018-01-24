@@ -1,6 +1,6 @@
 {
   "name": "@qtk/orm-framework",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "orm",
   "main": "index.js",
   "directories": {
@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/rayanywhere/qtk-orm-framework#readme",
   "dependencies": {
+    "key_mutex": "^3.1.3",
     "klaw-sync": "^3.0.2",
     "log4js": "^1.1.1",
     "memcached": "^2.2.2",
