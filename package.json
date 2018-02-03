@@ -1,6 +1,6 @@
 {
   "name": "@qtk/orm-framework",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "orm",
   "main": "index.js",
   "directories": {
@@ -12,6 +12,7 @@
   },
   "bin": {
     "orm_build_mysql": "bin/build_mysql/index.js",
+    "orm_destroy_mysql": "bin/destroy_mysql/index.js",
     "orm_list_module": "bin/list_module/index.js"
   },
   "repository": {
