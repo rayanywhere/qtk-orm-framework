@@ -1,5 +1,5 @@
 module.exports = {
-    Object: () =>require('./src/object'),
+    Object: require('./src/object'),
     Relation: require('./src/relation'),
     Type: require('./src/lib/type'),
     setup: ({objectPath, relationPath}) => {
