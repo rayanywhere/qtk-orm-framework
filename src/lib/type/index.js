@@ -11,18 +11,8 @@ module.exports = class T {
     static object(structure) {
         assert(typeof structure === 'object', `expecting structure to be an object`);
         return ({node, name}, mode) => {
-            if (mode === T.Mode.VERIFY) {
+            if (mode === T.Mode.VERIFY || mode === T.Mode.NORMALIZE) {
                 assert(typeof node[name] === 'object', `expecting a object value for key ${name}`);
-                for (const [key, func] of Object.entries(structure)) {
-                    func({node:node[name], name:key}, mode);
-                }
-            }
-            else if (mode === T.Mode.NORMALIZE) {
-                if (typeof node[name] === 'object') {
-                    return;
-                }
-                assert((typeof node[name] === 'undefined'), `bad type for key ${name}`);
-                node[name] = {};
                 for (const [key, func] of Object.entries(structure)) {
                     func({node:node[name], name:key}, mode);
                 }
@@ -36,20 +26,14 @@ module.exports = class T {
     static array(func) {
         assert(typeof func === 'function', `expecting func to be a function`);
         return ({node, name}, mode) => {
-            if (mode === T.Mode.VERIFY) {
+            if (mode === T.Mode.VERIFY || mode === T.Mode.NORMALIZE) {
+                if (typeof node[name] === 'undefined')
+                    node[name] = [];
                 assert(Array.isArray(node[name]), `expect an array value for key ${name}`);
                 for (const idx in node[name]) {
                     func({node:node[name], name:idx}, mode);
                 }
-            }
-            else if (mode === T.Mode.NORMALIZE) {
-                if (Array.isArray(node[name])) {
-                    return;
-                }
-                assert((typeof node[name] === 'undefined'), `bad type for key ${name}`);
-                node[name] = [];
-            }
-            else {
+            } else {
                 assert(false, 'unknown mode');
             }
         }
